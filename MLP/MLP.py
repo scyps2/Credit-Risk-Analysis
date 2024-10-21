@@ -22,10 +22,11 @@ df_test = preprocess(df_test)
 df_train = preprocess(df_train)
 
 # Encode y and y_next to one hot form
+inputs = ['y', 'y_next', 'grade']
 def one_hot_encoder(df):
     encoder = OneHotEncoder(sparse_output=False)
-    one_hot_encoded = encoder.fit_transform(df[['y', 'y_next']])
-    df_one_hot = pd.DataFrame(one_hot_encoded, columns = encoder.get_feature_names_out(['y', 'y_next']))
+    one_hot_encoded = encoder.fit_transform(df[inputs])
+    df_one_hot = pd.DataFrame(one_hot_encoded, columns = encoder.get_feature_names_out(inputs))
     df = pd.concat([df, df_one_hot], axis=1)
     return df
 
@@ -34,10 +35,9 @@ df_train = one_hot_encoder(df_train)
 print(df_train.head())
 
 # MLP Classifying
-##################### grade...
-X_train = df_train[['y_0', 'y_1', 'y_2', 'y_3']].dropna().to_numpy()
+X_train = df_train[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1']].dropna().to_numpy()
 y_train = df_train[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to_numpy()
-X_test = df_test[['y_0', 'y_1', 'y_2', 'y_3']].dropna().to_numpy()
+X_test = df_test[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1']].dropna().to_numpy()
 y_test = df_test[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to_numpy()
 
 mlp = MLPClassifier(hidden_layer_sizes = (10, 10), activation = 'relu', max_iter = 500, random_state = 1,
