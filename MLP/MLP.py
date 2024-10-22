@@ -49,10 +49,13 @@ y_pred_proba = mlp.predict_proba(X_test)
 # print(y_pred_proba)
 
 # Evaluation by brier score
-def brier_score(predicted, actual):
-    return np.mean(np.sum((predicted - actual)**2, axis = 1))
+score_matrix = (y_pred_proba - y_test)**2
 
-average_brier_score = brier_score(y_pred_proba, y_test)
+brier_score_states = np.mean(score_matrix, axis = 0)
+for i, score in enumerate(brier_score_states):
+    print(f"Brier score for state {i} is {score}")
+
+average_brier_score = np.sum(brier_score_states)
 print('Average brier score by probability is', average_brier_score)
 
 accuracy = np.mean(y_pred == y_test)

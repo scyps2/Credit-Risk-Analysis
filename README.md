@@ -15,6 +15,11 @@ _** Identity matrix: state transition doesn't happen. The next state copies curr
 - [x] Draw ROC curve
 ### Outcomes
 Basic ANN, with current month overdue state 'y' as input(one-hot encoded). Two hidden layers, each with 10 neurons. Output a probability matrix for all states of next month.  
+ 
+Brier score for state 0 is 0.026767212942569212  
+Brier score for state 1 is 0.03999608844442646  
+Brier score for state 2 is 0.026211268859962226  
+Brier score for state 3 is 0.03474007548554805  
 **brier score = 0.12771464573250563**  
  
 ![week 1 ROC](MLP/figs/basic.png)  
@@ -32,6 +37,11 @@ _** Threshold: If probability for state i > threshold, this is considered as 'po
 - [ ] try to adjust NN parameters / apply advanced spliting methods
 ### Outcomes
 Result slightly gets worse after including 'grade'.  
+ 
+Brier score for state 0 is 0.026593834862040974  
+Brier score for state 1 is 0.03991571728797261  
+Brier score for state 2 is 0.02782713063525248  
+Brier score for state 3 is 0.03674043336080793  
 **brier score = 0.13107711614607478**  
  
 ![week 2 ROC](MLP/figs/grade.png)  
@@ -41,6 +51,11 @@ Best threshold for state 2 is  0.06
 Best threshold for state 3 is  0.20  
   
 Even worse with larger dataset?  
+ 
+Brier score for state 0 is 0.026985053841233005  
+Brier score for state 1 is 0.042334845748764234  
+Brier score for state 2 is 0.030071927108308014  
+Brier score for state 3 is 0.03728453669115795  
 **brier score = 0.13667636338945005**  
  
 ![week 2 ROC](MLP/figs/larger_dataset.png)  
