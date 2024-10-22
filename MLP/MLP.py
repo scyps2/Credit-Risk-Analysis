@@ -6,9 +6,9 @@ from sklearn.metrics import roc_curve
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import OneHotEncoder
 
-df_test = pd.read_csv('simCRdata_test.csv')
+df_test = pd.read_csv('simCRdata_test2.csv')
 ############## test for this data 
-df_train = pd.read_csv('simCRdata.csv')
+df_train = pd.read_csv('simCRdata_train2.csv')
 
 # data preprocess, creat states of next month and clean dataset
 def preprocess(df):

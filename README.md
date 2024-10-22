@@ -17,7 +17,7 @@ _** Identity matrix: state transition doesn't happen. The next state copies curr
 Basic ANN, with current month overdue state 'y' as input(one-hot encoded). Two hidden layers, each with 10 neurons. Output a probability matrix for all states of next month.  
 **brier score = 0.12771464573250563**  
  
-![week 1 ROC](MLP/basic.png)  
+![week 1 ROC](MLP/figs/basic.png)  
 Best threshold for state 0 is  0.01  
 Best threshold for state 1 is  0.04  
 Best threshold for state 2 is  0.06  
@@ -28,14 +28,23 @@ _** Threshold: If probability for state i > threshold, this is considered as 'po
 ### Tasks
 - [x] include 'grade' to NN
 - [ ] test on training dataset
-- [ ] wait for supervisor sending larger dataset and test again
+- [x] wait for supervisor sending larger dataset and test again
 - [ ] try to adjust NN parameters / apply advanced spliting methods
 ### Outcomes
 Result slightly gets worse after including 'grade'.  
 **brier score = 0.13107711614607478**  
  
-![week 2 ROC](MLP/grade.png)  
+![week 2 ROC](MLP/figs/grade.png)  
 Best threshold for state 0 is  0.01  
 Best threshold for state 1 is  0.04  
 Best threshold for state 2 is  0.06  
 Best threshold for state 3 is  0.20  
+  
+Even worse with larger dataset?  
+**brier score = 0.13667636338945005**  
+ 
+![week 2 ROC](MLP/figs/larger_dataset.png)  
+Best threshold for state 0 is  0.02  
+Best threshold for state 1 is  0.01  
+Best threshold for state 2 is  0.09  
+Best threshold for state 3 is  0.13  
