@@ -5,8 +5,11 @@ This is a project aiming at analyzing overdue possibilities of customer credit, 
 Markov Chain model, see first commit of Markov Folder.  
 brier score = 0.12729008977196365  
 brier score when transition matrix is Identity matrix = 0.23454545454545456  
+_** Identity matrix: state transition doesn't happen. The next state copies current state for 100% probability._  
  
-_** Identity matrix: state transition doesn't happen. The next state copies current state for 100% probability._
+If calculate in seperate groups of 'grade' :  
+brier score of grade 0 = 0.1961217058296821  
+brier score of grade 1 = 0.11666801694743444  
 
 ## Week 1 (Oct. 14)
 ### Tasks

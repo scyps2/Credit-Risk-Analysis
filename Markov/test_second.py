@@ -16,7 +16,7 @@ print('Here is the transition matrix deriverd from the training data')
 print(transition_matrix)
 
 df_test['y_next'] = df_test.groupby('cust')['y'].shift(-1)
-df_clean = df_test.dropna(subset = ['y_next'])
+df_clean = df_test.dropna()
 #print(df_clean.head())
 
 # MSE
