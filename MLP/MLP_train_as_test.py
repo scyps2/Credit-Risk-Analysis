@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import OneHotEncoder
+from sklearn.model_selection import train_test_split
 
-df_test = pd.read_csv('simCRdata_test2.csv')
-df_train = pd.read_csv('simCRdata_train2.csv')
+df = pd.read_csv('simCRdata_train2.csv')
 
 # data preprocess, creat states of next month and clean dataset
 def preprocess(df):
@@ -17,8 +17,7 @@ def preprocess(df):
     df['y_next'] = df['y_next'].astype(int)
     return df
 
-df_test = preprocess(df_test)
-df_train = preprocess(df_train)
+df = preprocess(df)
 
 # Encode y and y_next to one hot form
 inputs = ['y', 'y_next', 'grade']
@@ -29,9 +28,10 @@ def one_hot_encoder(df):
     df = pd.concat([df, df_one_hot], axis=1)
     return df
 
-df_test = one_hot_encoder(df_test)
-df_train = one_hot_encoder(df_train)
-print(df_train.head())
+df = one_hot_encoder(df)
+
+df_train, df_test = train_test_split(df, test_size=0.3, random_state=42)
+print(df_test.head())
 
 # MLP Classifying
 X_train = df_train[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1']].dropna().to_numpy()

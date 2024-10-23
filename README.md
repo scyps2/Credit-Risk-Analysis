@@ -3,7 +3,7 @@ This is a project aiming at analyzing overdue possibilities of customer credit, 
 
 ## Works before joining in
 Markov Chain model, see first commit of Markov Folder.  
-brier score = 0.12729008977196365
+brier score = 0.12729008977196365  
 brier score when transition matrix is Identity matrix = 0.23454545454545456  
  
 _** Identity matrix: state transition doesn't happen. The next state copies current state for 100% probability._
@@ -32,8 +32,8 @@ _** Threshold: If probability for state i > threshold, this is considered as 'po
 ## Week 2 (Oct. 21)
 ### Tasks
 - [x] include 'grade' to NN
-- [ ] test on training dataset
 - [x] wait for supervisor sending larger dataset and test again
+- [x] test on training dataset
 - [ ] try to adjust NN parameters / apply advanced spliting methods
 ### Outcomes
 Result slightly gets worse after including 'grade'.  
@@ -49,7 +49,7 @@ Best threshold for state 0 is  0.01
 Best threshold for state 1 is  0.04  
 Best threshold for state 2 is  0.06  
 Best threshold for state 3 is  0.20  
-  
+#
 Even worse with larger dataset?  
  
 Brier score for state 0 is 0.026985053841233005  
@@ -63,3 +63,8 @@ Best threshold for state 0 is  0.02
 Best threshold for state 1 is  0.01  
 Best threshold for state 2 is  0.09  
 Best threshold for state 3 is  0.13  
+#
+Test on training dataset, worse as expected.  
+ 
+**brier score = 0.19145633429898679**  
+**brier score = 0.1411776412452** (larger dataset)
