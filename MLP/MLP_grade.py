@@ -2,12 +2,12 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from sklearn.metrics import roc_curve
+from sklearn.metrics import roc_curve, auc
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import OneHotEncoder
 
-df_test = pd.read_csv('simCRdata_test2.csv')
-df_train = pd.read_csv('simCRdata_train2.csv')
+df_test = pd.read_csv('data/simCRdata_test3.csv')
+df_train = pd.read_csv('data/simCRdata_train3.csv')
 
 # data preprocess, creat states of next month and clean dataset
 def preprocess(df):
@@ -55,7 +55,7 @@ for i, score in enumerate(brier_score_states):
     print(f"Brier score for state {i} is {score}")
 
 average_brier_score = np.sum(brier_score_states)
-print('Average brier score by probability is', average_brier_score)
+print('brier score = ', average_brier_score)
 
 accuracy = np.mean(y_pred == y_test)
 print('Accuracy:', accuracy)
@@ -64,7 +64,9 @@ print('Accuracy:', accuracy)
 fig, axs = plt.subplots(2, 2)
 for i, ax in enumerate(axs.ravel()):
     fpr, tpr, thresholds = roc_curve(y_test[:, i], y_pred_proba[:, i])
-    ax.plot(fpr, tpr, color = 'blue')
+    roc_auc = auc(fpr, tpr)
+    ax.plot(fpr, tpr, color = 'blue', label = 'area = %0.4f' % roc_auc)
+    ax.legend(loc = "lower right")
     ax.set_xlabel('False Positive Rate')
     ax.set_ylabel('True Positive Rate')
     ax.set_title(f'ROC Curve of state {i}')

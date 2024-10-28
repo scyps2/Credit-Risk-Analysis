@@ -1,8 +1,8 @@
 import  numpy as np
 import pandas as pd
-df_train=pd.read_csv('simCRdata_train2.csv')
+df_train=pd.read_csv('simCRdata_train3.csv')
 df_train=df_train.sort_values(by=['cust','t'])
-df_test=pd.read_csv('simCRdata_test2.csv')
+df_test=pd.read_csv('simCRdata_test3.csv')
 df_test=df_test.sort_values(by=['cust','t'])
 
 grouped = df_train.groupby('grade')
@@ -62,6 +62,8 @@ print('brier score of grade 0 = ')
 print(average_brier_score_grade0)
 print('brier score of grade 1 = ')
 print(average_brier_score_grade1)
+print("average = ", (average_brier_score_grade0 + average_brier_score_grade1)/2)
+
     
 
 

@@ -2,13 +2,12 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from sklearn.metrics import roc_curve
+from sklearn.metrics import roc_curve, auc
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import OneHotEncoder
 
-df_test = pd.read_csv('simCRdata_test2.csv')
-############## test for this data 
-df_train = pd.read_csv('simCRdata_train2.csv')
+df_test = pd.read_csv('data/simCRdata_test.csv')
+df_train = pd.read_csv('data/simCRdata.csv')
 
 # data preprocess, creat states of next month and clean dataset
 def preprocess(df):
@@ -34,7 +33,6 @@ df_train = one_hot_encoder(df_train)
 print(df_train.head())
 
 # MLP Classifying
-##################### grade...
 X_train = df_train[['y_0', 'y_1', 'y_2', 'y_3']].dropna().to_numpy()
 y_train = df_train[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to_numpy()
 X_test = df_test[['y_0', 'y_1', 'y_2', 'y_3']].dropna().to_numpy()
@@ -65,7 +63,9 @@ print('Accuracy:', accuracy)
 fig, axs = plt.subplots(2, 2)
 for i, ax in enumerate(axs.ravel()):
     fpr, tpr, thresholds = roc_curve(y_test[:, i], y_pred_proba[:, i])
-    ax.plot(fpr, tpr, color = 'blue')
+    roc_auc = auc(fpr, tpr)
+    ax.plot(fpr, tpr, color = 'blue', label = 'area = %0.4f' % roc_auc)
+    ax.legend(loc = "lower right")
     ax.set_xlabel('False Positive Rate')
     ax.set_ylabel('True Positive Rate')
     ax.set_title(f'ROC Curve of state {i}')

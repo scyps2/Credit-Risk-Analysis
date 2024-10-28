@@ -9,7 +9,7 @@ _** Identity matrix: state transition doesn't happen. The next state copies curr
  
 ## Week 1 (Oct. 14)
 ### Tasks
-- [x] build multi-class MLPClassifier with scikit-learn, predict on 'y_next'
+- [x] Build multi-class MLPClassifier with scikit-learn, predict on 'y_next'
 - [x] Evaluate results on brier score
 - [x] Draw ROC curve
 ### Outcomes
@@ -30,10 +30,9 @@ _** Threshold: If probability for state i > threshold, this is considered as 'po
 
 ## Week 2 (Oct. 21)
 ### Tasks
-- [x] include 'grade' to NN
-- [x] wait for supervisor sending larger dataset and test again
-- [x] test on training dataset
-- [ ] try to adjust NN parameters / apply advanced spliting methods
+- [x] Include 'grade' to NN
+- [x] Wait for larger dataset and test again
+- [x] Test on training dataset
 ### Outcomes
 Result gets worse after including 'grade'.  
  
@@ -51,8 +50,9 @@ Best threshold for state 3 is  0.20
 #
 Results improve with larger trainging dataset, especially those with overdue records.  
 #### Markov 
-**brier score of grade 0 = 0.13982951711633454**    
-**brier score of grade 1 = 0.0867008525177791**  
+brier score of grade 0 = 0.13982951711633454    
+brier score of grade 1 = 0.0867008525177791  
+**average =  0.11326518481705683**
 
 #### MLP 
 Brier score for state 0 is 0.038412409361005886  
@@ -73,5 +73,22 @@ brier score = 0.09927848251748608
 
 ## Week 3 (Oct. 28)
 ### Tasks
-- [ ] Get auc value of ROC
-- [ ] Train with smaller dataset spliting from the newest one
+- [x] Get auc value of ROC
+- [ ] Train with smaller dataset spliting from data2
+- [ ] Calculate average on several random states
+- [ ] Try to adjust NN parameters / apply advanced spliting methods, expected to reach Markov average
+
+### Outcomes
+Original results with dataset3:
+#### Markov
+brier score of grade 0 = 0.14363123495884136      
+brier score of grade 1 = 0.5709526434983646    
+**average = 0.357291939228603**
+
+#### MLP
+Brier score for state 0 is 0.17368632949775978  
+Brier score for state 1 is 0.17616818985984314  
+Brier score for state 2 is 0.08629849458531651  
+Brier score for state 3 is 0.02457887700079036  
+**brier score = 0.4607318909437098**
+![week 3 ROC](MLP/figs/dataset3.png) 
