@@ -70,3 +70,7 @@ Best threshold for state 3 is  0.01
 # 
 Test on training dataset, slightly better result.  
 brier score = 0.09927848251748608  
+
+## Week 3 (Oct. 28)
+### Tasks
+-[ ] Get auc value of ROC
