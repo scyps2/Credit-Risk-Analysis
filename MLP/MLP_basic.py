@@ -5,9 +5,10 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import OneHotEncoder
-from sklearn.model_selection import train_test_split
 
-df = pd.read_csv('simCRdata.csv')
+df_test = pd.read_csv('simCRdata_test2.csv')
+############## test for this data 
+df_train = pd.read_csv('simCRdata_train2.csv')
 
 # data preprocess, creat states of next month and clean dataset
 def preprocess(df):
@@ -17,26 +18,26 @@ def preprocess(df):
     df['y_next'] = df['y_next'].astype(int)
     return df
 
-df = preprocess(df)
+df_test = preprocess(df_test)
+df_train = preprocess(df_train)
 
 # Encode y and y_next to one hot form
-inputs = ['y', 'y_next', 'grade']
 def one_hot_encoder(df):
     encoder = OneHotEncoder(sparse_output=False)
-    one_hot_encoded = encoder.fit_transform(df[inputs])
-    df_one_hot = pd.DataFrame(one_hot_encoded, columns = encoder.get_feature_names_out(inputs))
+    one_hot_encoded = encoder.fit_transform(df[['y', 'y_next']])
+    df_one_hot = pd.DataFrame(one_hot_encoded, columns = encoder.get_feature_names_out(['y', 'y_next']))
     df = pd.concat([df, df_one_hot], axis=1)
     return df
 
-df = one_hot_encoder(df)
-
-df_train, df_test = train_test_split(df, test_size=0.3, random_state=42)
-print(df_test.head())
+df_test = one_hot_encoder(df_test)
+df_train = one_hot_encoder(df_train)
+print(df_train.head())
 
 # MLP Classifying
-X_train = df_train[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1']].dropna().to_numpy()
+##################### grade...
+X_train = df_train[['y_0', 'y_1', 'y_2', 'y_3']].dropna().to_numpy()
 y_train = df_train[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to_numpy()
-X_test = df_test[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1']].dropna().to_numpy()
+X_test = df_test[['y_0', 'y_1', 'y_2', 'y_3']].dropna().to_numpy()
 y_test = df_test[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to_numpy()
 
 mlp = MLPClassifier(hidden_layer_sizes = (10, 10), activation = 'relu', max_iter = 500, random_state = 1,

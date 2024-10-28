@@ -58,9 +58,9 @@ df_0_clean_test.to_csv('grade0_test2_brier_score.csv',index=False)
 df_1_clean_test.to_csv('grade1_test2_brier score.csv',index=False)
 average_brier_score_grade0=np.mean(brier_scores_grade0)
 average_brier_score_grade1=np.mean(brier_scores_grade1)
-print('average brier score of grade 0 is:')
+print('brier score of grade 0 = ')
 print(average_brier_score_grade0)
-print('average brier score of grade 1 is:')
+print('brier score of grade 1 = ')
 print(average_brier_score_grade1)
     
 

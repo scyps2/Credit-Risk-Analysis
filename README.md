@@ -3,14 +3,10 @@ This is a project aiming at analyzing overdue possibilities of customer credit, 
 
 ## Works before joining in
 Markov Chain model, see first commit of Markov Folder.  
-brier score = 0.12729008977196365  
+**brier score = 0.12729008977196365**  
 brier score when transition matrix is Identity matrix = 0.23454545454545456  
 _** Identity matrix: state transition doesn't happen. The next state copies current state for 100% probability._  
  
-If calculate in seperate groups of 'grade' :  
-brier score of grade 0 = 0.1961217058296821  
-brier score of grade 1 = 0.11666801694743444  
-
 ## Week 1 (Oct. 14)
 ### Tasks
 - [x] build multi-class MLPClassifier with scikit-learn, predict on 'y_next'
@@ -30,7 +26,7 @@ Best threshold for state 0 is  0.01
 Best threshold for state 1 is  0.04  
 Best threshold for state 2 is  0.06  
 Best threshold for state 3 is  0.29  
-_** Threshold: If probability for state i > threshold, this is considered as 'positive'. Otherwise 'negative'._ ***Best means we achieve the highest TRF.***  
+_** Threshold: If probability for state i > threshold, this is considered as 'positive'. Otherwise 'negative'. Best means we achieve the highest TRF._  
 
 ## Week 2 (Oct. 21)
 ### Tasks
@@ -39,13 +35,13 @@ _** Threshold: If probability for state i > threshold, this is considered as 'po
 - [x] test on training dataset
 - [ ] try to adjust NN parameters / apply advanced spliting methods
 ### Outcomes
-Result slightly gets worse after including 'grade'.  
+Result gets worse after including 'grade'.  
  
 Brier score for state 0 is 0.026593834862040974  
 Brier score for state 1 is 0.03991571728797261  
 Brier score for state 2 is 0.02782713063525248  
 Brier score for state 3 is 0.03674043336080793  
-**brier score = 0.13107711614607478**  
+brier score = 0.13107711614607478  
  
 ![week 2 ROC](MLP/figs/grade.png)  
 Best threshold for state 0 is  0.01  
@@ -53,21 +49,24 @@ Best threshold for state 1 is  0.04
 Best threshold for state 2 is  0.06  
 Best threshold for state 3 is  0.20  
 #
-Even worse with larger dataset?  
- 
-Brier score for state 0 is 0.026985053841233005  
-Brier score for state 1 is 0.042334845748764234  
-Brier score for state 2 is 0.030071927108308014  
-Brier score for state 3 is 0.03728453669115795  
-**brier score = 0.13667636338945005**  
- 
+Results improve with larger trainging dataset, especially those with overdue records.  
+#### Markov 
+**brier score of grade 0 = 0.13982951711633454**    
+**brier score of grade 1 = 0.0867008525177791**  
+
+#### MLP 
+Brier score for state 0 is 0.038412409361005886  
+Brier score for state 1 is 0.038244722036273104  
+Brier score for state 2 is 0.013505776922025611  
+Brier score for state 3 is 0.009791743234580331  
+**brier score = 0.09995465155388493 (with grade)**  
+brier score = 0.10098478835919814 (without grade)  
+
 ![week 2 ROC](MLP/figs/larger_dataset.png)  
-Best threshold for state 0 is  0.02  
+Best threshold for state 0 is  0.01  
 Best threshold for state 1 is  0.01  
-Best threshold for state 2 is  0.09  
-Best threshold for state 3 is  0.13  
-#
-Test on training dataset, worse as expected.  
- 
-**brier score = 0.19145633429898679**  
-**brier score = 0.1411776412452** (larger dataset)
+Best threshold for state 2 is  0.02  
+Best threshold for state 3 is  0.01  
+# 
+Test on training dataset, slightly better result.  
+brier score = 0.09927848251748608  
