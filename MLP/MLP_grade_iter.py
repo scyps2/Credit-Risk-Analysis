@@ -39,27 +39,31 @@ y_train = df_train[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to
 X_test = df_test[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1']].dropna().to_numpy()
 y_test = df_test[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to_numpy()
 
-mlp = MLPClassifier(hidden_layer_sizes = (10, 10), activation = 'relu', max_iter = 500, random_state = 1,
-                   learning_rate_init = 0.01, learning_rate = 'adaptive')
+brier_scores = []
+for i in range (0, 10):
+    mlp = MLPClassifier(hidden_layer_sizes = (10, 10), activation = 'relu', max_iter = 500, 
+                        learning_rate_init = 0.01, learning_rate = 'adaptive')
 
-mlp.fit(X_train, y_train)
-y_pred = mlp.predict(X_test)
-y_pred_proba = mlp.predict_proba(X_test)
+    mlp.fit(X_train, y_train)
+    y_pred = mlp.predict(X_test)
+    y_pred_proba = mlp.predict_proba(X_test)
 
-# Evaluation by brier score
-def brier(y_pred_proba, y_test):
-    score_matrix = (y_pred_proba - y_test)**2
-    brier_score_states = np.mean(score_matrix, axis = 0)
-    for i, score in enumerate(brier_score_states):
-        print(f"Brier score for state {i} is {score}")
-    brier_score = np.sum(brier_score_states)
-    return brier_score
+    # Evaluation by brier score
+    def brier(y_pred_proba, y_test):
+        score_matrix = (y_pred_proba - y_test)**2
+        brier_score_states = np.mean(score_matrix, axis = 0)
+        brier_score = np.sum(brier_score_states)
+        return brier_score
 
-brier_score = brier(y_pred_proba, y_test)
-print('brier score = ', brier_score)
+    brier_score = brier(y_pred_proba, y_test)
+    print(f"brier score for iter {i} = {brier_score}")
+    brier_scores.append(brier_score)
 
 accuracy = np.mean(y_pred == y_test)
 print('Accuracy:', accuracy)
+
+average_brier_score = np.mean(brier_scores)
+print(f"brier score = {average_brier_score}")
 
 # ROC curve
 fig, axs = plt.subplots(2, 2)

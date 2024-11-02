@@ -2,9 +2,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import roc_curve, auc, make_scorer
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import OneHotEncoder
+from sklearn.model_selection import GridSearchCV
 
 df_test = pd.read_csv('data/simCRdata_test3.csv')
 df_train = pd.read_csv('data/simCRdata_train3.csv')
@@ -39,27 +40,45 @@ y_train = df_train[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to
 X_test = df_test[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1']].dropna().to_numpy()
 y_test = df_test[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to_numpy()
 
-mlp = MLPClassifier(hidden_layer_sizes = (10, 10), activation = 'relu', max_iter = 500, random_state = 1,
-                   learning_rate_init = 0.01, learning_rate = 'adaptive')
+brier_scores = []
+for i in range (0, 10):
+    # search for the best parameter set by gird
+    mlp = MLPClassifier()
+    param_grid = {
+        'hidden_layer_sizes': [(10, 10), (20, 20), (30, 30), (40, 40), (50, 50)],
+        'activation': ['relu', 'tanh', 'logistic'],
+        'max_iter' : [500],
+        'learning_rate_init': [0.0001, 0.001, 0.01, 0.1],
+        'learning_rate': ['constant', 'adaptive']
+    }
 
-mlp.fit(X_train, y_train)
-y_pred = mlp.predict(X_test)
-y_pred_proba = mlp.predict_proba(X_test)
+    def brier(y_pred_proba, y_test):
+        score_matrix = (y_pred_proba - y_test)**2
+        brier_score_states = np.mean(score_matrix, axis = 0)
+        brier_score = np.sum(brier_score_states)
+        return brier_score
 
-# Evaluation by brier score
-def brier(y_pred_proba, y_test):
-    score_matrix = (y_pred_proba - y_test)**2
-    brier_score_states = np.mean(score_matrix, axis = 0)
-    for i, score in enumerate(brier_score_states):
-        print(f"Brier score for state {i} is {score}")
-    brier_score = np.sum(brier_score_states)
-    return brier_score
+    scorer = make_scorer(brier, greater_is_better=False)
+    grid_search = GridSearchCV(estimator=mlp, param_grid=param_grid, cv=3, scoring=scorer, n_jobs=-1)
+    grid_search.fit(X_train, y_train)
 
-brier_score = brier(y_pred_proba, y_test)
-print('brier score = ', brier_score)
+    best_params = grid_search.best_params_
+    print(f"Best parameters: {best_params}")
+    best_mlp = grid_search.best_estimator_
+    y_pred = best_mlp.predict(X_test)
+    y_pred_proba = best_mlp.predict_proba(X_test)
+
+    # Evaluation by brier score
+    brier_score = brier(y_pred_proba, y_test)
+    # print(f"brier score = {brier_score}")
+    print(f"brier score for iter {i} = {brier_score}")
+    brier_scores.append(brier_score)
 
 accuracy = np.mean(y_pred == y_test)
 print('Accuracy:', accuracy)
+
+average_brier_score = np.mean(brier_scores)
+print(f"brier score = {average_brier_score}")
 
 # ROC curve
 fig, axs = plt.subplots(2, 2)

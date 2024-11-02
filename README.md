@@ -75,8 +75,8 @@ brier score = 0.09927848251748608
 ### Tasks
 - [x] Get auc value of ROC
 - [ ] Train with smaller dataset spliting from data2
-- [ ] Calculate average on several random states
-- [ ] Try to adjust NN parameters / apply advanced spliting methods, expected to reach Markov average
+- [x] Calculate average on several random states
+- [x] Try to adjust NN parameters / apply advanced spliting methods, expected to reach Markov average
 
 ### Outcomes
 Original results with dataset3:
@@ -90,5 +90,107 @@ Brier score for state 0 is 0.17368632949775978
 Brier score for state 1 is 0.17616818985984314  
 Brier score for state 2 is 0.08629849458531651  
 Brier score for state 3 is 0.02457887700079036  
-**brier score = 0.4607318909437098**
+**brier score = 0.4607318909437098**  
 ![week 3 ROC](MLP/figs/dataset3.png) 
+#
+Iterate for 10 times to eliminate random state influence, **brier score = 0.46132653751693387**  
+#
+Apply two parameter optimization methods, both perform worse than the original model.
+
+With **GridSearchCV**, parameter grid as below :  
+```python
+param_grid = {
+    'hidden_layer_sizes': [(10, 10), (20, 20), (30, 30), (40, 40), (50, 50)],
+    'activation': ['relu', 'tanh', 'logistic'],
+    'max_iter' : [500],
+    'learning_rate_init': [0.0001, 0.001, 0.01, 0.1],
+    'learning_rate': ['constant', 'adaptive']
+    }
+```
+
+Searching and cross-validation method as below :  
+```python
+def brier(y_pred_proba, y_test):
+    score_matrix = (y_pred_proba - y_test)**2
+    brier_score_states = np.mean(score_matrix, axis = 0)
+    brier_score = np.sum(brier_score_states)
+    return brier_score
+
+mlp = MLPClassifier()
+scorer = make_scorer(brier, greater_is_better=False)
+grid_search = GridSearchCV(estimator=mlp, param_grid=param_grid, cv=3, scoring=scorer, n_jobs=-1)
+```
+
+Outputs like :  
+```python
+Best parameters: {'activation': 'logistic', 'hidden_layer_sizes': (20, 20), 'learning_rate': 'constant', 'learning_rate_init': 0.1, 'max_iter': 500}
+brier score for iter 0 = 0.4629094278224642  
+Best parameters: {'activation': 'tanh', 'hidden_layer_sizes': (30, 30), 'learning_rate': 'constant', 'learning_rate_init': 0.01, 'max_iter': 500}
+brier score for iter 1 = 0.4637866602976174  
+Best parameters: {'activation': 'tanh', 'hidden_layer_sizes': (50, 50), 'learning_rate': 'adaptive', 'learning_rate_init': 0.001, 'max_iter': 500}
+brier score for iter 2 = 0.4609471533974978  
+Best parameters: {'activation': 'logistic', 'hidden_layer_sizes': (10, 10), 'learning_rate': 'adaptive', 'learning_rate_init': 0.001, 'max_iter': 500}
+brier score for iter 3 = 0.4608449234509532  
+Best parameters: {'activation': 'tanh', 'hidden_layer_sizes': (40, 40), 'learning_rate': 'constant', 'learning_rate_init': 0.01, 'max_iter': 500}
+brier score for iter 4 = 0.46146397441909975  
+Best parameters: {'activation': 'logistic', 'hidden_layer_sizes': (50, 50), 'learning_rate': 'constant', 'learning_rate_init': 0.01, 'max_iter': 500}
+brier score for iter 5 = 0.46195621877533294  
+Best parameters: {'activation': 'logistic', 'hidden_layer_sizes': (40, 40), 'learning_rate': 'constant', 'learning_rate_init': 0.01, 'max_iter': 500}
+brier score for iter 6 = 0.4630642878856059  
+Best parameters: {'activation': 'tanh', 'hidden_layer_sizes': (10, 10), 'learning_rate': 'adaptive', 'learning_rate_init': 0.001, 'max_iter': 500}
+brier score for iter 7 = 0.46085037771754456  
+Best parameters: {'activation': 'logistic', 'hidden_layer_sizes': (40, 40), 'learning_rate': 'constant', 'learning_rate_init': 0.01, 'max_iter': 500}
+brier score for iter 8 = 0.4611146090906031  
+Best parameters: {'activation': 'logistic', 'hidden_layer_sizes': (30, 30), 'learning_rate': 'adaptive', 'learning_rate_init': 0.001, 'max_iter': 500}
+brier score for iter 9 = 0.46088245776623765  
+```
+In average, **brier score = 0.4617820090622957**  
+
+With **RandomizedSearchCV**, parameter distribution as below :  
+```python
+param_dist = {
+    'hidden_layer_sizes': [(randint.rvs(10, 50), randint.rvs(10, 50)) for _ in range(10)],
+    'activation': ['relu', 'tanh', 'logistic'],
+    'max_iter' : [500],
+    'learning_rate_init': np.linspace(0.0001, 1, 100),
+    'learning_rate': ['constant', 'adaptive']
+}
+```
+
+Searching and cross-validation method as below :  
+```python
+def brier(y_pred_proba, y_test):
+    score_matrix = (y_pred_proba - y_test)**2
+    brier_score_states = np.mean(score_matrix, axis = 0)
+    brier_score = np.sum(brier_score_states)
+    return brier_score
+
+mlp = MLPClassifier()
+scorer = make_scorer(brier, greater_is_better=False)
+grid_search = RandomizedSearchCV(estimator=mlp, param_grid=param_grid, cv=3, scoring=scorer, n_jobs=-1)
+```
+
+Outputs like :  
+```python
+Best parameters: {'max_iter': 500, 'learning_rate_init': 0.0001, 'learning_rate': 'adaptive', 'hidden_layer_sizes': (49, 28), 'activation': 'logistic'}
+brier score for iter 0 = 0.4608776117949424
+Best parameters: {'max_iter': 500, 'learning_rate_init': 0.1011, 'learning_rate': 'constant', 'hidden_layer_sizes': (13, 19), 'activation': 'logistic'}
+brier score for iter 1 = 0.4627631856764278
+Best parameters: {'max_iter': 500, 'learning_rate_init': 0.0304, 'learning_rate': 'adaptive', 'hidden_layer_sizes': (15, 38), 'activation': 'relu'}
+brier score for iter 2 = 0.46165973659005
+Best parameters: {'max_iter': 500, 'learning_rate_init': 0.1516, 'learning_rate': 'adaptive', 'hidden_layer_sizes': (24, 46), 'activation': 'relu'}
+brier score for iter 3 = 0.5046617910554287
+Best parameters: {'max_iter': 500, 'learning_rate_init': 0.1920, 'learning_rate': 'constant', 'hidden_layer_sizes': (22, 28), 'activation': 'relu'}
+brier score for iter 4 = 0.5185145071845055
+Best parameters: {'max_iter': 500, 'learning_rate_init': 0.0809, 'learning_rate': 'constant', 'hidden_layer_sizes': (24, 15), 'activation': 'logistic'}
+brier score for iter 5 = 0.46421292341607673
+Best parameters: {'max_iter': 500, 'learning_rate_init': 0.3435, 'learning_rate': 'adaptive', 'hidden_layer_sizes': (30, 39), 'activation': 'relu'}
+brier score for iter 6 = 0.5001353242989675
+Best parameters: {'max_iter': 500, 'learning_rate_init': 0.0809, 'learning_rate': 'constant', 'hidden_layer_sizes': (29, 40), 'activation': 'tanh'}
+brier score for iter 7 = 0.4925933086453276
+Best parameters: {'max_iter': 500, 'learning_rate_init': 0.0910, 'learning_rate': 'constant', 'hidden_layer_sizes': (28, 17), 'activation': 'logistic'}
+brier score for iter 8 = 0.4698615801582706
+Best parameters: {'max_iter': 500, 'learning_rate_init': 0.2425, 'learning_rate': 'constant', 'hidden_layer_sizes': (25, 17), 'activation': 'logistic'}
+brier score for iter 9 = 0.46324271910941683
+```
+In average, **brier score = 0.4798522687929413**  
