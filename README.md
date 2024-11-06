@@ -91,6 +91,7 @@ Brier score for state 1 is 0.17616818985984314
 Brier score for state 2 is 0.08629849458531651  
 Brier score for state 3 is 0.02457887700079036  
 **brier score = 0.4607318909437098**  
+ 
 ![week 3 ROC](MLP/figs/dataset3.png) 
 #
 Iterate for 10 times to eliminate random state influence, **brier score = 0.46132653751693387**  
@@ -194,3 +195,23 @@ Best parameters: {'max_iter': 500, 'learning_rate_init': 0.2425, 'learning_rate'
 brier score for iter 9 = 0.46324271910941683
 ```
 In average, **brier score = 0.4798522687929413**  
+
+## Week 4 (Nov. 4)
+### Tasks
+- [ ] Try data4 with macroeconomic and dummy variable
+
+### Outcomes
+Back to codes without optimazation and iteration, original results of data4 is:  
+Brier score for state 0 is 0.17582232763725908  
+Brier score for state 1 is 0.1777163907633097  
+Brier score for state 2 is 0.09672309619744057  
+Brier score for state 3 is 0.03225832881569659  
+**brier score =  0.4825201434137059**  
+ 
+![week 4 ROC](MLP/figs/dataset4.png)  
+
+After including mev, brier score =  0.4844400613953667  
+After including var, brier score =  0.48319578421255377  
+After including mev and var, **brier score =  0.4828506590072515**  
+ 
+![week 4 ROC](MLP/figs/mev_var.png) 
