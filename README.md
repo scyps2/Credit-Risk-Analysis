@@ -74,7 +74,6 @@ brier score = 0.09927848251748608
 ## Week 3 (Oct. 28)
 ### Tasks
 - [x] Get auc value of ROC
-- [ ] Train with smaller dataset spliting from data2
 - [x] Calculate average on several random states
 - [x] Try to adjust NN parameters / apply advanced spliting methods, expected to reach Markov average
 
@@ -198,7 +197,7 @@ In average, **brier score = 0.4798522687929413**
 
 ## Week 4 (Nov. 4)
 ### Tasks
-- [ ] Try data4 with macroeconomic and dummy variable
+- [x] Try data4 with macroeconomic and dummy variable
 
 ### Outcomes
 Back to codes without optimazation and iteration, original results of data4 is:  
