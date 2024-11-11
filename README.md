@@ -214,3 +214,8 @@ After including var, brier score =  0.48319578421255377
 After including mev and var, **brier score =  0.4828506590072515**  
  
 ![week 4 ROC](MLP/figs/mev_var.png) 
+
+## Week5 (Nov. 11)
+### Tasks
+- [ ] Only include mev (without grade)
+- [ ] Try other possibilities like different layers
