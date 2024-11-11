@@ -219,3 +219,4 @@ After including mev and var, **brier score =  0.4828506590072515**
 ### Tasks
 - [ ] Only include mev (without grade)
 - [ ] Try other possibilities like different layers
+- [ ] Standarized mev
