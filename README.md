@@ -93,7 +93,9 @@ Brier score for state 3 is 0.02457887700079036
  
 ![week 3 ROC](MLP/figs/dataset3.png) 
 #
-Iterate for 10 times to eliminate random state influence, **brier score = 0.46132653751693387**  
+To eliminate random state influence:  
+Iterate for 10 times, **brier score = 0.46132653751693387**  
+Iterate for 100 times, **best brier score = 0.4608061754259849**  
 #
 Apply two parameter optimization methods, both perform worse than the original model.
 
@@ -209,15 +211,43 @@ Brier score for state 3 is 0.03225832881569659
  
 ![week 4 ROC](MLP/figs/dataset4.png)  
 
-After including mev, brier score =  0.4844400613953667  
+After including mev, **brier score =  0.4844400613953667**  
 After including var, brier score =  0.48319578421255377  
-After including mev and var, **brier score =  0.4828506590072515**  
+After including mev and var, brier score =  0.4828506590072515  
  
 ![week 4 ROC](MLP/figs/mev_var.png) 
 
 ## Week5 (Nov. 11)
 ### Tasks
-- [ ] Only include mev (without grade)
-- [ ] Try other possibilities like different layers
-- [ ] Standarized mev
-- [ ] Select the best model in iterations
+- [x] Only include mev (without grade)
+- [x] Standarized mev
+- [x] Try other possibilities like different layers
+- [x] Select the best model in iterations
+
+### Outcomes
+Here below we exclude `'var'`, and MLP parameter is:  
+```python
+mlp = MLPClassifier(hidden_layer_sizes = (10, 10, 10), activation = 'relu', max_iter = 500, random_state = 1, learning_rate_init = 0.0001, learning_rate = 'adaptive')
+```
+
+#
+When input = `{'y', 'mev'}`, brier score = 0.5198876933537501  
+#
+When input = `{'y', 'grade', 'mev'}`, **brier score =  0.48207760383168186**  
+After standarizing mev, **brier score = 0.48244242236608675**    
+After normalizing mev, **brier score = 0.4823785433750731** 
+#
+Adjust parameter searching scope to include more layers. With **GridSearchCV**, parameter grid as below :  
+```python
+param_grid = {
+    'hidden_layer_sizes': [(10, 10), (20, 20), (10, 10, 10), (20, 20, 20), (10, 10, 10, 10), (20, 20, 20, 20)],
+    'activation': ['relu'],
+    'max_iter' : [1000],
+    'learning_rate_init': [0.0001, 0.001, 0.01, 0.1],
+    'learning_rate': ['adaptive']
+    }
+```
+
+Best set over 10 iterations:  
+`{'activation': 'relu', 'hidden_layer_sizes': (10, 10, 10, 10), 'learning_rate': 'adaptive', 'learning_rate_init': 0.0001, 'max_iter': 1000}`  
+brier score for iter 2 = 0.48225272507229633

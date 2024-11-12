@@ -9,19 +9,31 @@ from sklearn.preprocessing import OneHotEncoder
 df_test = pd.read_csv('data/simCRdata_test4.csv')
 df_train = pd.read_csv('data/simCRdata_train4.csv')
 
-# data preprocess, creat states of next month and clean dataset
+# creat states of next month and clean dataset, rescale mev
 def preprocess(df):
     df = df.sort_values(by=['cust', 't'])
     df['y_next'] = df.groupby('cust')['y'].shift(-1)
     df = df.dropna()
     df['y_next'] = df['y_next'].astype(int)
+
+    # standarization
+    # mean_mev = df['mev'].mean()
+    # std_mev = df['mev'].std()
+    # df['mev'] = (df['mev'] - mean_mev) / std_mev
+
+    # normalization
+    mev_min = np.min(df['mev'])
+    mev_max = np.max(df['mev'])
+    df['mev'] = (df['mev'] - mev_min) / (mev_max - mev_min)
+
     return df
 
 df_test = preprocess(df_test)
 df_train = preprocess(df_train)
+print(df_train.head())
 
 # Encode y and y_next to one hot form
-inputs = ['y', 'y_next', 'grade', 'var2']
+inputs = ['y', 'y_next', 'grade']
 def one_hot_encoder(df):
     encoder = OneHotEncoder(sparse_output=False)
     one_hot_encoded = encoder.fit_transform(df[inputs])
@@ -31,12 +43,11 @@ def one_hot_encoder(df):
 
 df_test = one_hot_encoder(df_test)
 df_train = one_hot_encoder(df_train)
-print(df_train.head())
 
 # MLP Classifying
-X_train = df_train[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1', 'var2_0', 'var2_1', 'mev']].dropna().to_numpy()
+X_train = df_train[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1', 'mev']].dropna().to_numpy()
 y_train = df_train[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to_numpy()
-X_test = df_test[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1', 'var2_0', 'var2_1', 'mev']].dropna().to_numpy()
+X_test = df_test[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1', 'mev']].dropna().to_numpy()
 y_test = df_test[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to_numpy()
 
 shared_rows = min(len(X_train), len(y_train))
@@ -45,8 +56,8 @@ y_train = y_train[:shared_rows]
 X_test = X_test[:shared_rows]
 y_test = y_test[:shared_rows]
 
-mlp = MLPClassifier(hidden_layer_sizes = (10, 10), activation = 'relu', max_iter = 500, random_state = 1,
-                   learning_rate_init = 0.01, learning_rate = 'adaptive')
+mlp = MLPClassifier(hidden_layer_sizes = (10, 10, 10), activation = 'relu', max_iter = 500, random_state = 1,
+                   learning_rate_init = 0.0001, learning_rate = 'adaptive')
 
 mlp.fit(X_train, y_train)
 y_pred = mlp.predict(X_test)

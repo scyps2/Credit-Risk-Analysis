@@ -40,7 +40,7 @@ X_test = df_test[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1']].dropna().to
 y_test = df_test[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to_numpy()
 
 brier_scores = []
-for i in range (0, 10):
+for i in range (0, 1000):
     mlp = MLPClassifier(hidden_layer_sizes = (10, 10), activation = 'relu', max_iter = 500, 
                         learning_rate_init = 0.01, learning_rate = 'adaptive')
 
@@ -59,11 +59,11 @@ for i in range (0, 10):
     print(f"brier score for iter {i} = {brier_score}")
     brier_scores.append(brier_score)
 
-accuracy = np.mean(y_pred == y_test)
-print('Accuracy:', accuracy)
+# accuracy = np.mean(y_pred == y_test)
+# print('Accuracy:', accuracy)
 
-average_brier_score = np.mean(brier_scores)
-print(f"brier score = {average_brier_score}")
+best_brier_score = min(brier_scores)
+print(f"brier score = {best_brier_score}")
 
 # ROC curve
 fig, axs = plt.subplots(2, 2)

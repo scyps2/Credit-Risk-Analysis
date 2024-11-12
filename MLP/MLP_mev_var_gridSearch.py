@@ -16,13 +16,24 @@ def preprocess(df):
     df['y_next'] = df.groupby('cust')['y'].shift(-1)
     df = df.dropna()
     df['y_next'] = df['y_next'].astype(int)
+    
+    # standarization
+    # mean_mev = df['mev'].mean()
+    # std_mev = df['mev'].std()
+    # df['mev'] = (df['mev'] - mean_mev) / std_mev
+
+    # normalization
+    mev_min = np.min(df['mev'])
+    mev_max = np.max(df['mev'])
+    df['mev'] = (df['mev'] - mev_min) / (mev_max - mev_min)
+
     return df
 
 df_test = preprocess(df_test)
 df_train = preprocess(df_train)
 
 # Encode y and y_next to one hot form
-inputs = ['y', 'y_next', 'grade', 'var2']
+inputs = ['y', 'y_next', 'grade']
 def one_hot_encoder(df):
     encoder = OneHotEncoder(sparse_output=False)
     one_hot_encoded = encoder.fit_transform(df[inputs])
@@ -35,9 +46,9 @@ df_train = one_hot_encoder(df_train)
 print(df_train.head())
 
 # MLP Classifying
-X_train = df_train[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1', 'var2_0', 'var2_1', 'mev']].dropna().to_numpy()
+X_train = df_train[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1', 'mev']].dropna().to_numpy()
 y_train = df_train[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to_numpy()
-X_test = df_test[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1', 'var2_0', 'var2_1', 'mev']].dropna().to_numpy()
+X_test = df_test[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1', 'mev']].dropna().to_numpy()
 y_test = df_test[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to_numpy()
 
 shared_rows = min(len(X_train), len(y_train))
@@ -51,11 +62,11 @@ for i in range (0, 10):
     # search for the best parameter set by gird
     mlp = MLPClassifier()
     param_grid = {
-        'hidden_layer_sizes': [(10, 10), (20, 20), (30, 30), (40, 40), (50, 50)],
-        'activation': ['relu', 'tanh', 'logistic'],
+        'hidden_layer_sizes': [(10, 10), (20, 20), (10, 10, 10), (20, 20, 20), (10, 10, 10, 10), (20, 20, 20, 20)],
+        'activation': ['relu'],
         'max_iter' : [1000],
         'learning_rate_init': [0.0001, 0.001, 0.01, 0.1],
-        'learning_rate': ['constant', 'adaptive']
+        'learning_rate': ['adaptive']
     }
 
     def brier(y_pred_proba, y_test):
