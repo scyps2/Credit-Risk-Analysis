@@ -251,3 +251,7 @@ param_grid = {
 Best set over 10 iterations:  
 `{'activation': 'relu', 'hidden_layer_sizes': (10, 10, 10, 10), 'learning_rate': 'adaptive', 'learning_rate_init': 0.0001, 'max_iter': 1000}`  
 brier score for iter 2 = 0.48225272507229633
+
+## Week 6 (Nov. 18)
+### Tasks
+-[ ] Seperate grade 0 from 1 in NN, compare NN probability matrix with Markov transition matrix 
