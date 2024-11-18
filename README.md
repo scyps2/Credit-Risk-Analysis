@@ -254,4 +254,27 @@ brier score for iter 2 = 0.48225272507229633
 
 ## Week 6 (Nov. 18)
 ### Tasks
--[ ] Seperate grade 0 from 1 in NN, compare NN probability matrix with Markov transition matrix 
+- [x] Seperate by grade   
+- [x] Try new dataset with mev = {-1, 1}  
+- [ ] Compare NN probability matrix with Markov transition matrix
+
+### Outcomes
+Here below we use dataset 5. When MLP parameter is:  
+```python
+mlp = MLPClassifier(hidden_layer_sizes = (8, ), activation = 'relu', max_iter = 5000, random_state = 1, learning_rate_init = 0.0001, learning_rate = 'adaptive')
+```
+When input = `{'y', 'grade'}`, **brier score = 0.5276192896091086**   
+brier score for grade 0 =  0.3026123535528573  
+brier score for grade 1 =  0.5905629254611353  
+
+When input = `{'y', 'grade', 'mev'}`, **brier score = 0.5133514644228406**. In this dataset, mev starts to contribute.  
+brier score for grade 0 =  0.29763892401039216  
+brier score for grade 1 =  0.58760583709603  
+
+When MLP parameter is:  
+```python
+mlp = MLPClassifier(hidden_layer_sizes = (10, 10, 10), activation = 'relu', max_iter = 2000, random_state = 1, learning_rate_init = 0.0001, learning_rate = 'adaptive')
+```
+When input = `{'y', 'grade', 'mev'}`, **brier score = 0.5092614433952495**  
+brier score for grade 0 =  0.3090747324301512  
+brier score for grade 1 =  0.5813350790612843    
