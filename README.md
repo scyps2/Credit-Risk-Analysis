@@ -278,3 +278,6 @@ mlp = MLPClassifier(hidden_layer_sizes = (10, 10, 10), activation = 'relu', max_
 When input = `{'y', 'grade', 'mev'}`, **brier score = 0.5092614433952495**  
 brier score for grade 0 =  0.3090747324301512  
 brier score for grade 1 =  0.5813350790612843    
+
+## Summary
+xxx
