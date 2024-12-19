@@ -15,6 +15,7 @@ def preprocess(df):
     df['y_next'] = df.groupby('cust')['y'].shift(-1)
     df = df.dropna()
     df['y_next'] = df['y_next'].astype(int)
+    df = df.reset_index()
 
     # standarization
     # mean_mev = df['mev'].mean()
@@ -41,12 +42,13 @@ df_train_0, df_train_1 = seperate_grade(df_train)
 df_test_0, df_test_1 = seperate_grade(df_test)
 
 # Encode y and y_next to one hot form
-inputs = ['y', 'y_next', 'grade', 'mev']
+inputs = ['y', 'y_next', 'grade']
 def one_hot_encoder(df):
     encoder = OneHotEncoder(sparse_output=False)
     one_hot_encoded = encoder.fit_transform(df[inputs])
     df_one_hot = pd.DataFrame(one_hot_encoded, columns = encoder.get_feature_names_out(inputs))
     df = pd.concat([df, df_one_hot], axis=1)
+    
     return df
 
 df_train_0 = one_hot_encoder(df_train_0)
@@ -56,15 +58,15 @@ df_test_1 = one_hot_encoder(df_test_1)
 print(df_train_0.head())
 
 # MLP Classifying
-X_train_0 = df_train_0[['y_0', 'y_1', 'y_2', 'y_3', 'grade', 'mev_-1', 'mev_1']].dropna().to_numpy()
-y_train_0 = df_train_0[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to_numpy()
-X_test_0 = df_test_0[['y_0', 'y_1', 'y_2', 'y_3', 'grade', 'mev_-1', 'mev_1']].dropna().to_numpy()
-y_test_0 = df_test_0[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to_numpy()
+X_train_0 = df_train_0[['y_0', 'y_1', 'y_2', 'y_3', 'grade']].to_numpy()
+y_train_0 = df_train_0[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].to_numpy()
+X_test_0 = df_test_0[['y_0', 'y_1', 'y_2', 'y_3', 'grade']].to_numpy()
+y_test_0 = df_test_0[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].to_numpy()
 
-X_train_1 = df_train_1[['y_0', 'y_1', 'y_2', 'y_3', 'grade', 'mev_-1', 'mev_1']].dropna().to_numpy()
-y_train_1 = df_train_1[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to_numpy()
-X_test_1 = df_test_1[['y_0', 'y_1', 'y_2', 'y_3', 'grade', 'mev_-1', 'mev_1']].dropna().to_numpy()
-y_test_1 = df_test_1[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to_numpy()
+X_train_1 = df_train_1[['y_0', 'y_1', 'y_2', 'y_3', 'grade']].to_numpy()
+y_train_1 = df_train_1[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].to_numpy()
+X_test_1 = df_test_1[['y_0', 'y_1', 'y_2', 'y_3', 'grade']].to_numpy()
+y_test_1 = df_test_1[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].to_numpy()
 
 shared_rows = min(len(X_train_0), len(y_train_0))
 X_train_0 = X_train_0[:shared_rows]
@@ -78,7 +80,7 @@ y_train_1 = y_train_1[:shared_rows]
 X_test_1 = X_test_1[:shared_rows]
 y_test_1 = y_test_1[:shared_rows]
 
-mlp = MLPClassifier(hidden_layer_sizes = (8, ), activation = 'relu', max_iter = 5000, random_state = 1,
+mlp = MLPClassifier(hidden_layer_sizes = (10, 10, 10), activation = 'relu', max_iter = 2000, random_state = 1,
                    learning_rate_init = 0.0001, learning_rate = 'adaptive')
 
 mlp.fit(X_train_0, y_train_0)

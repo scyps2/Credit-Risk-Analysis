@@ -15,6 +15,7 @@ def preprocess(df):
     df['y_next'] = df.groupby('cust')['y'].shift(-1)
     df = df.dropna()
     df['y_next'] = df['y_next'].astype(int)
+    df = df.reset_index()
     return df
 
 df_test = preprocess(df_test)
@@ -34,10 +35,10 @@ df_train = one_hot_encoder(df_train)
 print(df_train.head())
 
 # MLP Classifying
-X_train = df_train[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1']].dropna().to_numpy()
-y_train = df_train[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to_numpy()
-X_test = df_test[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1']].dropna().to_numpy()
-y_test = df_test[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to_numpy()
+X_train = df_train[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1']].to_numpy()
+y_train = df_train[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].to_numpy()
+X_test = df_test[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1']].to_numpy()
+y_test = df_test[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].to_numpy()
 
 brier_scores = []
 for i in range (0, 1000):

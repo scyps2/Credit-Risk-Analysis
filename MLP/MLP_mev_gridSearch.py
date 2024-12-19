@@ -23,9 +23,9 @@ def preprocess(df):
     # df['mev'] = (df['mev'] - mean_mev) / std_mev
 
     # normalization
-    mev_min = np.min(df['mev'])
-    mev_max = np.max(df['mev'])
-    df['mev'] = (df['mev'] - mev_min) / (mev_max - mev_min)
+    # mev_min = np.min(df['mev'])
+    # mev_max = np.max(df['mev'])
+    # df['mev'] = (df['mev'] - mev_min) / (mev_max - mev_min)
 
     return df
 
@@ -39,17 +39,18 @@ def one_hot_encoder(df):
     one_hot_encoded = encoder.fit_transform(df[inputs])
     df_one_hot = pd.DataFrame(one_hot_encoded, columns = encoder.get_feature_names_out(inputs))
     df = pd.concat([df, df_one_hot], axis=1)
+    df = df.reset_index()
     return df
 
 df_test = one_hot_encoder(df_test)
 df_train = one_hot_encoder(df_train)
-print(df_train.head())
+print(df_train.to_csv("test.csv"))
 
 # MLP Classifying
-X_train = df_train[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1', 'mev']].dropna().to_numpy()
-y_train = df_train[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to_numpy()
-X_test = df_test[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1', 'mev']].dropna().to_numpy()
-y_test = df_test[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to_numpy()
+X_train = df_train[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1', 'mev']].to_numpy()
+y_train = df_train[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].to_numpy()
+X_test = df_test[['y_0', 'y_1', 'y_2', 'y_3', 'grade_0', 'grade_1', 'mev']].to_numpy()
+y_test = df_test[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].to_numpy()
 
 shared_rows = min(len(X_train), len(y_train))
 X_train = X_train[:shared_rows]

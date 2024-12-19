@@ -15,6 +15,7 @@ def preprocess(df):
     df['y_next'] = df.groupby('cust')['y'].shift(-1)
     df = df.dropna()
     df['y_next'] = df['y_next'].astype(int)
+    df = df.reset_index()
     return df
 
 df_test = preprocess(df_test)
@@ -33,10 +34,10 @@ df_train = one_hot_encoder(df_train)
 print(df_train.head())
 
 # MLP Classifying
-X_train = df_train[['y_0', 'y_1', 'y_2', 'y_3']].dropna().to_numpy()
-y_train = df_train[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to_numpy()
-X_test = df_test[['y_0', 'y_1', 'y_2', 'y_3']].dropna().to_numpy()
-y_test = df_test[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].dropna().to_numpy()
+X_train = df_train[['y_0', 'y_1', 'y_2', 'y_3']].to_numpy()
+y_train = df_train[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].to_numpy()
+X_test = df_test[['y_0', 'y_1', 'y_2', 'y_3']].to_numpy()
+y_test = df_test[['y_next_0', 'y_next_1', 'y_next_2', 'y_next_3']].to_numpy()
 
 mlp = MLPClassifier(hidden_layer_sizes = (10, 10), activation = 'relu', max_iter = 500, random_state = 1,
                    learning_rate_init = 0.01, learning_rate = 'adaptive')
