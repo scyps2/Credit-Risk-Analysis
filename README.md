@@ -1,5 +1,53 @@
-# 2024 Autumn Project on Credit Risk
+# NN-Markov Project on Credit Risk
 This is a project aiming at analyzing overdue possibilities of customer credit, using Markov Chain and Neuro Network. Starting from 2024 autumn.
+
+## Source data intepretation
+All data come from Freddiemac, accesible in https://www.freddiemac.com/research/datasets/sf-loanlevel-dataset.  
+Official hand book can be found [HERE](https://github.com/scyps2/Credit-Risk-Analyzing/MLP/user_guide.pdf)  
+Official tool that allows analysis of the Standard Dataset: https://claritybi.freddiemac.com/MicroStrategyLibrary/plugins/clarity/indexCRT.html
+### Dataset and Data Dictionary Mapping
+
+| Data File Name Example | Type | Corresponding Sheet in Data Dictionary |
+|------------------------|-------------|--------------------------------|
+| **`historical_data_xxxxQx.txt`** | **Standard** | `Origination Data File` |
+| **`historical_data_time_xxxxQx.txt`** | **Standard** | `Monthly Performance Data File` |
+| historical_data_excl_xxxxQx.txt | Non-Standard | Origination Data File |
+| historical_data_excl_time_xxxxQx.txt | Non-Standard | Monthly Performance Data File |
+
+Data dictionary can be found in [file_layout.xlsx](https://github.com/scyps2/Credit-Risk-Analyzing/MLP/file_layout.xlsx)  
+
+## Work in 2025
+### Week 1
+For the first step we used `Monthly Performance Data File`. Features Mapping:    
+Loan Sequence Number -> cust  
+Monthly Reporting Period -> t  
+Current Loan Delinquency Status -> y  
+
+MLP Results (head 10000 data):  
+brier score = 0.10160234557362295 (non-standard)  
+**brier score =  0.04421953397677621** (standard)
+  
+_** Some explaination for data columns:_  
+-_Loan Sequence Number: only identify certain loans but not clients for now._  
+-_`Origination Data File` include credit score, which may be used later._  
+-_Monthly Reporting Period: recorded loan data starting from that year until the end._
+
+### Week 2
+When rearranging deliquency status into `0, 1, ... 7, 7+`, **brier score =  0.040705493481083786**
+
+Then if adding input feature: 
+```python
+["Credit Score", "Original UPB", "Original Debt-to-Income (DTI) Ratio", "Original Loan-to-Value (LTV)", "Original Interest Rate"]
+```
+brier score =  0.174244431319433
+
+### Week 3
+2020 data.  
+split train test dataset according to loans.  
+standarlize features.  
+only credit score.  
+
+
 
 ## Works before joining in
 Markov Chain model, see first commit of Markov Folder.  
