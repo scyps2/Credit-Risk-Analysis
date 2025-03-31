@@ -55,7 +55,7 @@ def brier(y_pred_proba, y_test):
     brier_score_states = np.mean(score_matrix, axis = 0)
     for i, score in enumerate(brier_score_states):
         print(f"Brier score for state {i} is {score}")
-    brier_score = np.sum(brier_score_states) # mean or sum?
+    brier_score = np.sum(brier_score_states)
     return brier_score
 
 brier_score = brier(y_pred_proba, y_test)
