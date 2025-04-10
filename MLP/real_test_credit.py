@@ -1,12 +1,14 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
 
-df_performance = pd.read_csv('2020Q1_standard_performance.csv').head(100000)
-df_origination = pd.read_csv('2020Q1_standard_origination.csv').head(100000)
+df_performance = pd.read_csv('2020Q1_standard_performance.csv').head(500000)
+df_origination = pd.read_csv('2020Q1_standard_origination.csv').head(500000)
 
 df_performance = df_performance[[
     "Loan Sequence Number", "Monthly Reporting Period", 
@@ -43,10 +45,13 @@ def reclassify(df):
     # reclassify
     threshold = 0.995
     n = int(status_summary[status_summary["Cumulative Ratio"] <= threshold]["Delinquency Status"].max())
-    df["Processed Loan Delinquency Status"] = df["Current Loan Delinquency Status"].apply(
-        lambda x: x if x <= n else f"{n}+"
+    # df["Processed Loan Delinquency Status"] = df["Current Loan Delinquency Status"].apply(
+    #     lambda x: x if x <= n else f"{n}+"
+    # )
+    # df['Current Loan Delinquency Status'] = df['Processed Loan Delinquency Status'].astype(str)
+    df["Current Loan Delinquency Status"] = df["Current Loan Delinquency Status"].apply(
+        lambda x: x if x <= n else n+1
     )
-    df['Current Loan Delinquency Status'] = df['Processed Loan Delinquency Status'].astype(str)
     print(df["Current Loan Delinquency Status"].unique())
 
     return df
@@ -110,8 +115,42 @@ mlp.fit(X_train, y_train)
 y_pred = mlp.predict(X_test)
 y_pred_proba = mlp.predict_proba(X_test)
 
-# y_pred = mlp.predict(X_train)
-# y_pred_proba = mlp.predict_proba(X_train)
+# generate transition matrix and visualization
+def transition_matrix(current_state, y_pred_proba):
+    num_classes = y_pred_proba.shape[1]
+    transition_matrix = np.zeros((num_classes, num_classes))
+
+    for row in range(len(current_state)): # iterate over rows
+        from_state = current_state[row]
+        transition_matrix[from_state] += y_pred_proba[row]
+
+    row_sum = transition_matrix.sum(axis=1, keepdims=True)
+    row_sum[row_sum == 0] = 1 # state not appear in test set
+    transition_matrix = transition_matrix / row_sum
+    
+    return transition_matrix
+
+def plot_transition_heatmap(transition_matrix):
+    plt.figure(figsize=(8, 6))
+    ax = sns.heatmap(
+        transition_matrix, 
+        fmt=".2f", cmap="Blues"
+    )
+    ax.xaxis.set_ticks_position('top')
+
+    plt.xlabel("To State")
+    plt.ylabel("From State")
+    plt.title("Transition Matrix Heatmap")
+    plt.tight_layout()
+    plt.show()
+
+current_state = np.argmax( # decode into integer columns(before one-hot)
+    X_test[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')]].values,
+    axis=1
+)
+T = transition_matrix(current_state, y_pred_proba)
+print("Transition Matrix:\n", T)
+plot_transition_heatmap(T)
 
 # Evaluation by mean probability
 def mean_prob(y_pred_proba, y_test):
@@ -128,8 +167,8 @@ def mean_prob(y_pred_proba, y_test):
     mean_prob = np.nanmean(mean_prob_class)
     return mean_prob
 
+print("\nOverall PTP")
 average_probability = mean_prob(y_pred_proba, y_test.to_numpy())
-# average_probability = mean_prob(y_pred_proba, y_train.to_numpy())
 print(f'average probability = {average_probability}')
 
 # Evaluation by brier score
@@ -141,7 +180,7 @@ def brier(y_pred_proba, y_test):
     brier_score = np.sum(brier_score_states)
     return brier_score
 
+print("\nOverall brier score")
 brier_score = brier(y_pred_proba, y_test)
-# brier_score = brier(y_pred_proba, y_train)
 print('brier score = ', brier_score)
 

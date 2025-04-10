@@ -15,12 +15,11 @@ df_performance = df_performance[[
     "Current Loan Delinquency Status"
 ]]
 df_origination = df_origination[[
-    "Loan Sequence Number", "Credit Score", "Original UPB", 
-    "Original Debt-to-Income (DTI) Ratio", "Original Loan-to-Value (LTV)",
-    "Original Interest Rate"
+    "Loan Sequence Number", "Credit Score"
 ]]
 df = pd.merge(df_origination, df_performance, on="Loan Sequence Number", how="inner")
 print(df.head(), df.shape)
+
 
 def reclassify(df):
     df = df.dropna()
@@ -55,6 +54,9 @@ def reclassify(df):
     )
     print(df["Current Loan Delinquency Status"].unique())
 
+    # relabel credit score
+    df["Credit Score"] = df["Credit Score"].apply(lambda x: 0 if x <= 700 else 1)
+    
     return df
 
 df = reclassify(df)
@@ -69,7 +71,7 @@ def preprocess(df):
 
     # standarization
     exclude_cols = ['Loan Sequence Number', 'Monthly Reporting Period', 
-                    'Current Loan Delinquency Status', 'Next Loan Delinquency Status']
+                    'Current Loan Delinquency Status', 'Next Loan Delinquency Status', 'Credit Score']
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     cols_to_standardize = [col for col in numeric_cols if col not in exclude_cols]
     for col in cols_to_standardize:
@@ -100,15 +102,31 @@ train_loans, test_loans = train_test_split(unique_loans, test_size=0.3, random_s
 train_df = df[df["Loan Sequence Number"].isin(train_loans)]
 test_df = df[df["Loan Sequence Number"].isin(test_loans)]
 
-X_train = train_df[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')] +
-        ["Credit Score", "Original UPB", "Original Debt-to-Income (DTI) Ratio", 
-        "Original Loan-to-Value (LTV)", "Original Interest Rate"]]
+X_train = train_df[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')] + 
+                   ["Credit Score"]]
 y_train = train_df[[col for col in encoded_columns if col.startswith('Next Loan Delinquency Status')]]
 
-X_test = test_df[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')] +
-        ["Credit Score", "Original UPB", "Original Debt-to-Income (DTI) Ratio", 
-        "Original Loan-to-Value (LTV)", "Original Interest Rate"]]
+X_test = test_df[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')] + 
+                 ["Credit Score"]]
 y_test = test_df[[col for col in encoded_columns if col.startswith('Next Loan Delinquency Status')]]
+
+# separate dataset by credit 
+train_low = train_df[train_df["Credit Score"] == 0]
+X_train_low = train_low[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')] + ["Credit Score"]]
+y_train_low = train_low[[col for col in encoded_columns if col.startswith('Next Loan Delinquency Status')]]
+                                                                          
+test_low = test_df[test_df["Credit Score"] == 0]
+X_test_low = test_low[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')] + ["Credit Score"]]
+y_test_low = test_low[[col for col in encoded_columns if col.startswith('Next Loan Delinquency Status')]]
+
+train_high = train_df[train_df["Credit Score"] == 1]
+X_train_high = train_high[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')] + ["Credit Score"]]
+y_train_high = train_high[[col for col in encoded_columns if col.startswith('Next Loan Delinquency Status')]]
+
+test_high = test_df[test_df["Credit Score"] == 1]
+X_test_high = test_high[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')] + ["Credit Score"]]
+y_test_high = test_high[[col for col in encoded_columns if col.startswith('Next Loan Delinquency Status')]]
+
 
 # MLP Classifying
 mlp = MLPClassifier(hidden_layer_sizes = (10, 10, 10), activation = 'relu', max_iter = 5000, random_state = 1,
@@ -116,6 +134,14 @@ mlp = MLPClassifier(hidden_layer_sizes = (10, 10, 10), activation = 'relu', max_
 
 mlp.fit(X_train, y_train)
 y_pred_proba = mlp.predict_proba(X_test)
+
+mlp.fit(X_train_low, y_train_low)
+y_pred_proba_low = mlp.predict_proba(X_test_low)
+print(y_pred_proba_low)
+
+mlp.fit(X_train_high, y_train_high)
+y_pred_proba_high = mlp.predict_proba(X_test_high)
+
 
 # generate transition matrix and visualization
 def transition_matrix(current_state, y_pred_proba):
@@ -154,6 +180,17 @@ T = transition_matrix(current_state, y_pred_proba)
 print("Transition Matrix:\n", T)
 plot_transition_heatmap(T)
 
+# current_state_low = np.argmax(X_test_low[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')]].values, axis=1)
+# T_low = transition_matrix(y_pred_proba_low, current_state_low)
+# print("Transition Matrix for credit 0:\n", T_low)
+
+# current_state_high = np.argmax(X_test_high[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')]].values, axis=1)
+# T_high = transition_matrix(y_pred_proba_high, current_state_high)
+# print("Transition Matrix for credit 1:\n", T_high)
+
+# plot_transition_heatmap(T_low)
+# plot_transition_heatmap(T_high)
+
 # Evaluation by mean probability
 def mean_prob(y_pred_proba, y_test):
     mean_prob_class = []
@@ -169,8 +206,17 @@ def mean_prob(y_pred_proba, y_test):
     mean_prob = np.nanmean(mean_prob_class)
     return mean_prob
 
+print("\nOverall PTP")
 average_probability = mean_prob(y_pred_proba, y_test.to_numpy())
 print(f'average probability = {average_probability}')
+
+print("\nPTP for credit 0")
+average_probability_low = mean_prob(y_pred_proba_low, y_test_low.to_numpy())
+print(f'average probability for credit 0 = {average_probability_low}')
+
+print("\nPTP for credit 1")
+average_probability_high = mean_prob(y_pred_proba_high, y_test_high.to_numpy())
+print(f'average probability for credit 1 = {average_probability_high}')
 
 # Evaluation by brier score
 def brier(y_pred_proba, y_test):
@@ -183,3 +229,4 @@ def brier(y_pred_proba, y_test):
 
 brier_score = brier(y_pred_proba, y_test)
 print('brier score = ', brier_score)
+

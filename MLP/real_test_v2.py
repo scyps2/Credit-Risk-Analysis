@@ -1,26 +1,23 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
 
-df_performance = pd.read_csv('2020Q1_standard_performance.csv').head(500000)
-df_origination = pd.read_csv('2020Q1_standard_origination.csv').head(500000)
+df_performance = pd.read_csv('2007Q1_standard_performance.csv').head(100000)
+df_origination = pd.read_csv('2007Q1_standard_origination.csv').head(100000)
 
 df_performance = df_performance[[
     "Loan Sequence Number", "Monthly Reporting Period", 
     "Current Loan Delinquency Status"
 ]]
 df_origination = df_origination[[
-    "Loan Sequence Number", "Credit Score", "Original UPB", 
-    "Original Debt-to-Income (DTI) Ratio", "Original Loan-to-Value (LTV)",
-    "Original Interest Rate"
+    "Loan Sequence Number", "Credit Score"
 ]]
 df = pd.merge(df_origination, df_performance, on="Loan Sequence Number", how="inner")
 print(df.head(), df.shape)
+
 
 def reclassify(df):
     df = df.dropna()
@@ -46,13 +43,10 @@ def reclassify(df):
     # reclassify
     threshold = 0.995
     n = int(status_summary[status_summary["Cumulative Ratio"] <= threshold]["Delinquency Status"].max())
-    # df["Processed Loan Delinquency Status"] = df["Current Loan Delinquency Status"].apply(
-    #     lambda x: x if x <= n else f"{n}+"
-    # )
-    # df['Current Loan Delinquency Status'] = df['Processed Loan Delinquency Status'].astype(str)
-    df["Current Loan Delinquency Status"] = df["Current Loan Delinquency Status"].apply(
-        lambda x: x if x <= n else n+1
+    df["Processed Loan Delinquency Status"] = df["Current Loan Delinquency Status"].apply(
+        lambda x: x if x <= n else f"{n}+"
     )
+    df['Current Loan Delinquency Status'] = df['Processed Loan Delinquency Status'].astype(str)
     print(df["Current Loan Delinquency Status"].unique())
 
     return df
@@ -67,20 +61,16 @@ def preprocess(df):
     df = df[df["Next Loan Delinquency Status"] != "RA"]
     df = df.reset_index(drop=True)
 
-    # standarization
-    exclude_cols = ['Loan Sequence Number', 'Monthly Reporting Period', 
-                    'Current Loan Delinquency Status', 'Next Loan Delinquency Status']
-    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-    cols_to_standardize = [col for col in numeric_cols if col not in exclude_cols]
-    for col in cols_to_standardize:
-        mean = df[col].mean()
-        std = df[col].std()
-        df[col] = (df[col] - mean) / std
+    # # standarization
+    # mean_credit = df['Credit Score'].mean()
+    # std_credit = df['Credit Score'].std()
+    # df['Credit Score'] = (df['Credit Score'] - mean_credit) / std_credit
     
     return df
 
 df = preprocess(df)
 print(df.head(), df.shape)
+
 
 # Encode y and y_next to one hot form
 inputs = ["Current Loan Delinquency Status", 'Next Loan Delinquency Status']
@@ -100,59 +90,23 @@ train_loans, test_loans = train_test_split(unique_loans, test_size=0.3, random_s
 train_df = df[df["Loan Sequence Number"].isin(train_loans)]
 test_df = df[df["Loan Sequence Number"].isin(test_loans)]
 
-X_train = train_df[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')] +
-        ["Credit Score", "Original UPB", "Original Debt-to-Income (DTI) Ratio", 
-        "Original Loan-to-Value (LTV)", "Original Interest Rate"]]
+X_train = train_df[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')]]
 y_train = train_df[[col for col in encoded_columns if col.startswith('Next Loan Delinquency Status')]]
-
-X_test = test_df[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')] +
-        ["Credit Score", "Original UPB", "Original Debt-to-Income (DTI) Ratio", 
-        "Original Loan-to-Value (LTV)", "Original Interest Rate"]]
+X_test = test_df[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')]]
 y_test = test_df[[col for col in encoded_columns if col.startswith('Next Loan Delinquency Status')]]
+
+# X = df[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')] +
+#         ["Credit Score"]]
+# y = df[[col for col in encoded_columns if col.startswith('Next Loan Delinquency Status')]]
+# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
 # MLP Classifying
 mlp = MLPClassifier(hidden_layer_sizes = (10, 10, 10), activation = 'relu', max_iter = 5000, random_state = 1,
                    learning_rate_init = 0.0001, learning_rate = 'adaptive')
 
 mlp.fit(X_train, y_train)
+y_pred = mlp.predict(X_test)
 y_pred_proba = mlp.predict_proba(X_test)
-
-# generate transition matrix and visualization
-def transition_matrix(current_state, y_pred_proba):
-    num_classes = y_pred_proba.shape[1]
-    transition_matrix = np.zeros((num_classes, num_classes))
-
-    for row in range(len(current_state)): # iterate over rows
-        from_state = current_state[row]
-        transition_matrix[from_state] += y_pred_proba[row]
-
-    row_sum = transition_matrix.sum(axis=1, keepdims=True)
-    row_sum[row_sum == 0] = 1 # state not appear in test set
-    transition_matrix = transition_matrix / row_sum
-    
-    return transition_matrix
-
-def plot_transition_heatmap(transition_matrix):
-    plt.figure(figsize=(8, 6))
-    ax = sns.heatmap(
-        transition_matrix, 
-        fmt=".2f", cmap="Blues"
-    )
-    ax.xaxis.set_ticks_position('top')
-
-    plt.xlabel("To State")
-    plt.ylabel("From State")
-    plt.title("Transition Matrix Heatmap")
-    plt.tight_layout()
-    plt.show()
-
-current_state = np.argmax( # decode into integer columns(before one-hot)
-    X_test[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')]].values,
-    axis=1
-)
-T = transition_matrix(current_state, y_pred_proba)
-print("Transition Matrix:\n", T)
-plot_transition_heatmap(T)
 
 # Evaluation by mean probability
 def mean_prob(y_pred_proba, y_test):
@@ -165,6 +119,10 @@ def mean_prob(y_pred_proba, y_test):
             mean_prob_i = np.nan
         print(f"Probability of truly predicting class {i} is {mean_prob_i}")
         mean_prob_class.append(mean_prob_i)
+
+    # mean_prob_class = np.mean(y_pred_proba, axis=0)
+    # for i, prob in enumerate(mean_prob_class):
+    #     print(f"Probability for class {i} is {prob:.5f}")
 
     mean_prob = np.nanmean(mean_prob_class)
     return mean_prob
@@ -183,3 +141,4 @@ def brier(y_pred_proba, y_test):
 
 brier_score = brier(y_pred_proba, y_test)
 print('brier score = ', brier_score)
+

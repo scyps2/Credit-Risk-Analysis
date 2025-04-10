@@ -51,8 +51,15 @@ If spliting train test dataset according to loans, which means records with same
 _**If using brier score criteria, brier score =  0.040006129813197726_  
 
 ### Week 4
-The following is examinations on data of 2020Q1. Here state(class) 3 means delinquency state of higher than 2 months. For detail results, see [MLP_Report](https://github.com/scyps2/Credit-Risk-Analyzing/blob/main/Reports/MLP_report.md).
+This week we organized MLP model into 3 levels of feature numbers, and also test MLP on train and test set, separately. Both PTP and brier score for each state are reported.  
+For detail results, see [Report-Week 4](https://github.com/scyps2/Credit-Risk-Analyzing/blob/main/Reports/MLP-Week4.md).
 
+### Week 5
+This week we relabel credit score into binary values, where:
+```python
+credit < 700 => 0; otherwise => 1.
+```
+And also calculate transition matrix derived from MLP predictions. For detail results, see [Report-Week 5](https://github.com/scyps2/Credit-Risk-Analyzing/blob/main/Reports/MLP-Week5.md).
 
 
 ## Works before joining in
