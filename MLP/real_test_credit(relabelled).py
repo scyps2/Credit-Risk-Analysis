@@ -137,10 +137,11 @@ y_pred_proba = mlp.predict_proba(X_test)
 
 mlp.fit(X_train_low, y_train_low)
 y_pred_proba_low = mlp.predict_proba(X_test_low)
-print(y_pred_proba_low)
+np.savetxt("credit_low_predict.csv", y_pred_proba_low, delimiter=',')
 
 mlp.fit(X_train_high, y_train_high)
 y_pred_proba_high = mlp.predict_proba(X_test_high)
+np.savetxt("credit_high_predict.csv", y_pred_proba_high, delimiter=',')
 
 
 # generate transition matrix and visualization
@@ -180,16 +181,21 @@ T = transition_matrix(current_state, y_pred_proba)
 print("Transition Matrix:\n", T)
 plot_transition_heatmap(T)
 
-# current_state_low = np.argmax(X_test_low[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')]].values, axis=1)
-# T_low = transition_matrix(y_pred_proba_low, current_state_low)
-# print("Transition Matrix for credit 0:\n", T_low)
+current_state_low = np.argmax(
+    X_test_low[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')]].values, 
+    axis=1
+)
+T_low = transition_matrix(current_state_low, y_pred_proba_low)
+print("Transition Matrix for credit 0:\n", T_low)
+plot_transition_heatmap(T_low)
 
-# current_state_high = np.argmax(X_test_high[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')]].values, axis=1)
-# T_high = transition_matrix(y_pred_proba_high, current_state_high)
-# print("Transition Matrix for credit 1:\n", T_high)
-
-# plot_transition_heatmap(T_low)
-# plot_transition_heatmap(T_high)
+current_state_high = np.argmax(
+    X_test_high[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')]].values, 
+    axis=1
+)
+T_high = transition_matrix(current_state_high, y_pred_proba_high)
+print("Transition Matrix for credit 1:\n", T_high)
+plot_transition_heatmap(T_high)
 
 # Evaluation by mean probability
 def mean_prob(y_pred_proba, y_test):
@@ -227,6 +233,33 @@ def brier(y_pred_proba, y_test):
     brier_score = np.sum(brier_score_states)
     return brier_score
 
-brier_score = brier(y_pred_proba, y_test)
+def brier_weighted(y_pred_proba, y_test, distance_power = 1):
+    score_matrix = (y_pred_proba - y_test)**2
+
+    # decode one hot
+    true_labels = np.argmax(y_test, axis=1)
+    num_classes = y_pred_proba.shape[1]
+
+    weighted_scores = []
+
+    for i, true_label in enumerate(true_labels):
+        # calculate weight list
+        distances = np.abs(np.arange(num_classes) - true_label)
+        weights = (distances + 1) ** distance_power
+
+        weighted_score = weights * score_matrix[i] / np.sum(weights)
+        weighted_scores.append(weighted_score)
+
+    brier_score_states = np.mean(weighted_scores, axis = 0)
+    for i, score in enumerate(brier_score_states):
+        print(f"Brier score for state {i} is {score}")
+    brier_score = np.sum(brier_score_states)
+
+    return brier_score
+
+print("\nOverall brier score")
+brier_score = brier(y_pred_proba, y_test.to_numpy())
 print('brier score = ', brier_score)
+brier_score = brier_weighted(y_pred_proba, y_test.to_numpy())
+print('adjusted brier score = ', brier_score)
 

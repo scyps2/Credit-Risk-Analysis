@@ -158,7 +158,6 @@ def mean_prob(y_pred_proba, y_test):
     return mean_prob
 
 average_probability = mean_prob(y_pred_proba, y_test.to_numpy())
-# average_probability = mean_prob(y_pred_proba, y_train.to_numpy())
 print(f'average probability = {average_probability}')
 
 # Evaluation by brier score
@@ -170,6 +169,32 @@ def brier(y_pred_proba, y_test):
     brier_score = np.sum(brier_score_states)
     return brier_score
 
-brier_score = brier(y_pred_proba, y_test)
-# brier_score = brier(y_pred_proba, y_train)
+def brier_weighted(y_pred_proba, y_test, distance_power = 1):
+    score_matrix = (y_pred_proba - y_test)**2
+
+    # decode one hot
+    true_labels = np.argmax(y_test, axis=1)
+    num_classes = y_pred_proba.shape[1]
+
+    weighted_scores = []
+
+    for i, true_label in enumerate(true_labels):
+        # calculate weight list
+        distances = np.abs(np.arange(num_classes) - true_label)
+        weights = (distances + 1) ** distance_power
+
+        weighted_score = weights * score_matrix[i] / np.sum(weights)
+        weighted_scores.append(weighted_score)
+
+    brier_score_states = np.mean(weighted_scores, axis = 0)
+    for i, score in enumerate(brier_score_states):
+        print(f"Brier score for state {i} is {score}")
+    brier_score = np.sum(brier_score_states)
+
+    return brier_score
+
+print("\nOverall brier score")
+brier_score = brier(y_pred_proba, y_test.to_numpy())
 print('brier score = ', brier_score)
+brier_score = brier_weighted(y_pred_proba, y_test.to_numpy())
+print('adjusted brier score = ', brier_score)
