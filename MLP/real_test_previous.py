@@ -109,17 +109,46 @@ mlp.fit(X_train, y_train)
 def predict_n_months(mlp, n, input):
     for _ in range(n):
         pred_proba = mlp.predict_proba(input)
-        # remain probability form
-        input = pred_proba
-        # encode to one hot
-        # input_labels = np.argmax(pred_proba, axis=1)
-        # input = np.zeros_like(pred_proba)
-        # input[np.arange(len(input)), input_labels] = 1
+        # 1. remain probability form
+        # input = pred_proba
+        # 2. encode to one hot
+        input_labels = np.argmax(pred_proba, axis=1)
+        input = np.zeros_like(pred_proba)
+        input[np.arange(len(input)), input_labels] = 1
 
     return pred_proba
 
-y_pred_proba = predict_n_months(mlp, MONTH_AHEAD, X_test)
+def predict_n_months_weighted(mlp, n, input):
+    # current distribution in one-hot form
+    current_states = input[[column for column in input.columns if column.startswith('Current Loan Delinquency Status')]].to_numpy()
+    num_classes = current_states.shape[1]
+    results = {}
+
+    for month in range(n):
+        # predict next month probability distributions
+        next_states = mlp.predict_proba(current_states)
+
+        # assume next state is 0,1...6+
+        predicted_given_each_next_state = []
+        for assumed_next_state in range(num_classes):
+            one_hot_next_state = np.zeros_like(next_states)
+            one_hot_next_state[:, assumed_next_state] = 1
+
+            predicted_probs = mlp.predict_proba(one_hot_next_state)
+            predicted_given_each_next_state.append(predicted_probs)
+
+        # change list of arrays to 3d array
+        predicted_given_each_next_state = np.stack(predicted_given_each_next_state, axis=1) 
+
+        # weight by transition probabilities
+        results = np.einsum('bi,bij->bj', next_states, predicted_given_each_next_state)
+        current_states = results
+
+    return results
+
 # y_pred_proba = mlp.predict_proba(X_test)
+# y_pred_proba = predict_n_months(mlp, MONTH_AHEAD, X_test)
+y_pred_proba = predict_n_months_weighted(mlp, MONTH_AHEAD, X_test)
 
 # generate transition matrix and visualization
 def transition_matrix(current_state, y_pred_proba):

@@ -137,8 +137,44 @@ def predict_n_months(mlp, n, input):
 
     return pred_proba
 
-y_pred_proba = predict_n_months(mlp, MONTH_AHEAD, X_test)
+def predict_n_months_weighted(mlp, n, input):
+    features = input[[
+        "Credit Score", "Original UPB", "Original Debt-to-Income (DTI) Ratio", 
+        "Original Loan-to-Value (LTV)", "Original Interest Rate"
+        ]].to_numpy()
+
+    # current distribution in one-hot form
+    current_states = input[[column for column in input.columns if column.startswith('Current Loan Delinquency Status')]].to_numpy()
+    num_classes = current_states.shape[1]
+    results = {}
+
+    for month in range(n):
+        # predict next month probability distributions
+        input = np.hstack((current_states, features))
+        next_states = mlp.predict_proba(input)
+
+        # assume next state is 0,1...6+
+        predicted_given_each_next_state = []
+        for assumed_next_state in range(num_classes):
+            one_hot_next_state = np.zeros_like(next_states)
+            one_hot_next_state[:, assumed_next_state] = 1
+
+            input_next = np.hstack((one_hot_next_state, features))
+            predicted_probs = mlp.predict_proba(input_next)
+            predicted_given_each_next_state.append(predicted_probs)
+
+        # change list of arrays to 3d array
+        predicted_given_each_next_state = np.stack(predicted_given_each_next_state, axis=1) 
+
+        # weight by transition probabilities
+        results = np.einsum('bi,bij->bj', next_states, predicted_given_each_next_state)
+        current_states = results
+
+    return results
+
 # y_pred_proba = mlp.predict_proba(X_test)
+# y_pred_proba = predict_n_months(mlp, MONTH_AHEAD, X_test)
+y_pred_proba = predict_n_months_weighted(mlp, MONTH_AHEAD, X_test)
 
 # generate transition matrix and visualization
 def transition_matrix(current_state, y_pred_proba):

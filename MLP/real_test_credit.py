@@ -120,27 +120,61 @@ def predict_n_months(mlp, n, input):
     for _ in range(n):
         pred_proba = mlp.predict_proba(input)
 
-        # remain probability form
-        input = pred_proba
-        # encode to one hot
-        # input_labels = np.argmax(pred_proba, axis=1)
-        # input = np.zeros_like(pred_proba)
-        # input[np.arange(len(input)), input_labels] = 1
+        # 1. remain probability form
+        # result = pred_proba
+        # 2. encode to one hot
+        result_labels = np.argmax(pred_proba, axis=1)
+        result = np.zeros_like(pred_proba)
+        result[np.arange(len(result)), result_labels] = 1
 
-        input = np.hstack((input, features))
+        input = np.hstack((result, features))
 
     return pred_proba
 
-y_pred_proba = predict_n_months(mlp, MONTH_AHEAD, X_test)
+def predict_n_months_weighted(mlp, n, input):
+    features = input[['Credit Score']].to_numpy()
+
+    # current distribution in one-hot form
+    current_states = input[[column for column in input.columns if column.startswith('Current Loan Delinquency Status')]].to_numpy()
+    num_classes = current_states.shape[1]
+    results = {}
+
+    for month in range(n):
+        # predict next month probability distributions
+        input = np.hstack((current_states, features))
+        next_states = mlp.predict_proba(input)
+
+        # assume next state is 0,1...6+
+        predicted_given_each_next_state = []
+        for assumed_next_state in range(num_classes):
+            one_hot_next_state = np.zeros_like(next_states)
+            one_hot_next_state[:, assumed_next_state] = 1
+
+            input_next = np.hstack((one_hot_next_state, features))
+            predicted_probs = mlp.predict_proba(input_next)
+            predicted_given_each_next_state.append(predicted_probs)
+
+        # change list of arrays to 3d array
+        predicted_given_each_next_state = np.stack(predicted_given_each_next_state, axis=1) 
+
+        # weight by transition probabilities
+        results = np.einsum('bi,bij->bj', next_states, predicted_given_each_next_state)
+        current_states = results
+
+    return results
+
 # y_pred_proba = mlp.predict_proba(X_test)
+# y_pred_proba = predict_n_months(mlp, MONTH_AHEAD, X_test)
+y_pred_proba = predict_n_months_weighted(mlp, MONTH_AHEAD, X_test)
+
 
 # generate transition matrix and visualization
-def transition_matrix(current_state, y_pred_proba):
+def transition_matrix(current_states, y_pred_proba):
     num_classes = y_pred_proba.shape[1]
     transition_matrix = np.zeros((num_classes, num_classes))
 
-    for row in range(len(current_state)): # iterate over rows
-        from_state = current_state[row]
+    for row in range(len(current_states)): # iterate over rows
+        from_state = current_states[row]
         transition_matrix[from_state] += y_pred_proba[row]
 
     row_sum = transition_matrix.sum(axis=1, keepdims=True)
@@ -163,11 +197,11 @@ def plot_transition_heatmap(transition_matrix):
     plt.tight_layout()
     plt.show()
 
-current_state = np.argmax( # decode into integer columns(before one-hot)
+current_states = np.argmax( # decode into integer columns(before one-hot)
     X_test[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')]].values,
     axis=1
 )
-T = transition_matrix(current_state, y_pred_proba)
+T = transition_matrix(current_states, y_pred_proba)
 print("Transition Matrix:\n", T)
 plot_transition_heatmap(T)
 
@@ -176,13 +210,13 @@ plot_transition_heatmap(T)
 # Evaluation by mean probability
 def mean_prob(y_pred_proba, y_test):
     mean_prob_class = []
-    for i in range(y_pred_proba.shape[1]):
-        rows_i = y_test[:, i] == 1 # select all rows whose true label is i (boolean)
+    for assumed_next_state in range(y_pred_proba.shape[1]):
+        rows_i = y_test[:, assumed_next_state] == 1 # select all rows whose true label is assumed_next_state (boolean)
         if np.sum(rows_i) > 0:
-            mean_prob_i = np.mean(y_pred_proba[rows_i, i]) # y_pred_proba[rows_i, i]: only calculate rows of True
+            mean_prob_i = np.mean(y_pred_proba[rows_i, assumed_next_state]) # y_pred_proba[rows_i, assumed_next_state]: only calculate rows of True
         else:
             mean_prob_i = np.nan
-        print(f"Probability of truly predicting class {i} is {mean_prob_i}")
+        print(f"Probability of truly predicting class {assumed_next_state} is {mean_prob_i}")
         mean_prob_class.append(mean_prob_i)
 
     mean_prob = np.nanmean(mean_prob_class)
@@ -193,12 +227,12 @@ def mean_prob(y_pred_proba, y_test):
 def entropy(y_pred_proba, y_test):
     true_probs = np.sum(y_pred_proba * y_test, axis=1)
     log_probs = np.empty_like(true_probs)
-    for i, p in enumerate(true_probs):
-        if p == 0:
-            print(f"Sample {i}: True class probability is 0, setting log to NaN")
-            log_probs[i] = np.nan
+    for assumed_next_state, prob in enumerate(true_probs):
+        if prob == 0:
+            print(f"Sample {assumed_next_state}: True class probability is 0, setting log to NaN")
+            log_probs[assumed_next_state] = np.nan
         else:
-            log_probs[i] = np.log(p)
+            log_probs[assumed_next_state] = np.log(prob)
 
     entropy = -np.nanmean(log_probs)
     return entropy
@@ -213,8 +247,8 @@ print(f'\nentropy = {entropy_probability}')
 def brier(y_pred_proba, y_test):
     score_matrix = (y_pred_proba - y_test)**2
     brier_score_states = np.mean(score_matrix, axis = 0)
-    for i, score in enumerate(brier_score_states):
-        print(f"Brier score for state {i} is {score}")
+    for assumed_next_state, score in enumerate(brier_score_states):
+        print(f"Brier score for state {assumed_next_state} is {score}")
     brier_score = np.sum(brier_score_states)
     return brier_score
 
@@ -227,22 +261,21 @@ def brier_weighted(y_pred_proba, y_test, distance_power = 1):
 
     weighted_scores = []
 
-    for i, true_label in enumerate(true_labels):
+    for assumed_next_state, true_label in enumerate(true_labels):
         # calculate weight list
         distances = np.abs(np.arange(num_classes) - true_label)
         weights = (distances + 1) ** distance_power
 
-        weighted_score = weights * score_matrix[i] / np.sum(weights)
+        weighted_score = weights * score_matrix[assumed_next_state] / np.sum(weights)
         weighted_scores.append(weighted_score)
 
     brier_score_states = np.mean(weighted_scores, axis = 0)
-    for i, score in enumerate(brier_score_states):
-        print(f"Brier score for state {i} is {score}")
+    for assumed_next_state, score in enumerate(brier_score_states):
+        print(f"Brier score for state {assumed_next_state} is {score}")
     brier_score = np.sum(brier_score_states)
 
     return brier_score
 
-print("\nOverall brier score")
 brier_score = brier(y_pred_proba, y_test.to_numpy())
 print('brier score = ', brier_score)
 brier_score = brier_weighted(y_pred_proba, y_test.to_numpy())

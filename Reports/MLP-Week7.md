@@ -18,8 +18,9 @@ def entropy(y_pred_proba, y_test):
 ```
 Within classes from **0 to 6+**, entropy ranges from **0 to 2.079**.
 The results below are all based on predicting deliquency status after 3 months.  
-### Iteration Method
-Under this methods, two different approches are applied. In the following algorithm, either pass original `pred_proba` to `input`, or encode into one-hot form to align with training data.  
+### Iteration Method 1
+**_propagating the transition probabilities_  
+Under this method, two different approches are applied. In the following algorithm, either pass original `pred_proba` to `input`, or encode into one-hot form to align with training data.  
 ```python
 # iterate to predict status after n months
 def predict_n_months(mlp, n, input):
@@ -61,7 +62,7 @@ adjusted brier score =  0.00206502130955303
 
 **With `Credit Score`:**  
 average probability = 0.2452789950399672  
-entropy = 0.10265724155852532  
+entropy = 0.10265724155852532 (1 months ahead: 0.05270378591909334)  
 brier score =  0.031817913828540344
 adjusted brier score =  0.002108563723060312
 
@@ -71,7 +72,68 @@ entropy = 0.10682508970748208
 brier score =  0.03168545357708819  
 adjusted brier score =  0.0020835252409971633  
 
-### Train MLP with status 3 months ago
+### Iteration Method 2
+**_getting transition probabilities for all possible state transitions, then taking expected value based on previous transition probabilities_
+
+```python
+def predict_n_months_weighted(mlp, n, input):
+    features = input[['Credit Score']].to_numpy()
+
+    # current distribution in one-hot form
+    current_states = input[[column for column in input.columns if column.startswith('Current Loan Delinquency Status')]].to_numpy()
+    num_classes = current_states.shape[1]
+    results = {}
+
+    for month in range(n):
+        # predict next month probability distributions
+        input = np.hstack((current_states, features))
+        next_states = mlp.predict_proba(input)
+
+        # assume next state is 0,1...6+
+        predicted_given_each_next_state = []
+        for assumed_next_state in range(num_classes):
+            one_hot_next_state = np.zeros_like(next_states)
+            one_hot_next_state[:, assumed_next_state] = 1
+
+            input_next = np.hstack((one_hot_next_state, features))
+            predicted_probs = mlp.predict_proba(input_next)
+            predicted_given_each_next_state.append(predicted_probs)
+
+        # change list of arrays to 3d array
+        predicted_given_each_next_state = np.stack(predicted_given_each_next_state, axis=1) 
+
+        # weight by transition probabilities
+        results = np.einsum('bi,bij->bj', next_states, predicted_given_each_next_state)
+        current_states = results
+
+    return results
+
+y_pred_proba = predict_n_months_weighted(mlp, MONTH_AHEAD, X_test)
+```
+average probability = 0.12526569605103838  
+entropy = 0.15076349984500884  
+brier score =  0.040581465430572984  
+adjusted brier score =  0.0034305335518346075  
+
+**With `Credit Score`:**  
+average probability = 0.12650117339075412  
+entropy = 0.1564331980069873  
+brier score =  0.040124938313709904
+adjusted brier score =  0.0033586610557953143
+
+**With 5 main features:**  
+average probability = 0.2036118311850642  
+entropy = 0.09982141095467027  
+brier score =  0.029232008014607735  
+adjusted brier score =  0.0017095765922018418
+
+### **Train MLP with status 3 months ago
+We can also modifiy the training process according the months to predict ahead, as:
+```python
+MONTH_AHEAD = 3
+# in function preprocess()
+df['Next Loan Delinquency Status'] = df.groupby('Loan Sequence Number')['Current Loan Delinquency Status'].shift(-MONTH_AHEAD)
+```
 average probability = 0.30554111135043394  
 entropy = 0.0793874576832437  
 brier score =  0.02810046936215188  
