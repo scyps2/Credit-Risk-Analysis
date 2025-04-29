@@ -7,6 +7,8 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
 
+MONTH_AHEAD = 3
+
 df_performance = pd.read_csv('2020Q1_standard_performance.csv').head(500000)
 df_origination = pd.read_csv('2020Q1_standard_origination.csv').head(500000)
 
@@ -115,7 +117,28 @@ mlp = MLPClassifier(hidden_layer_sizes = (10, 10, 10), activation = 'relu', max_
                    learning_rate_init = 0.0001, learning_rate = 'adaptive')
 
 mlp.fit(X_train, y_train)
-y_pred_proba = mlp.predict_proba(X_test)
+
+def predict_n_months(mlp, n, input):
+    features = input[[
+        "Credit Score", "Original UPB", "Original Debt-to-Income (DTI) Ratio", 
+        "Original Loan-to-Value (LTV)", "Original Interest Rate"
+        ]].to_numpy()
+    for _ in range(n):
+        pred_proba = mlp.predict_proba(input)
+
+        # remain probability form
+        # input = pred_proba
+        # encode to one hot
+        input_labels = np.argmax(pred_proba, axis=1)
+        input = np.zeros_like(pred_proba)
+        input[np.arange(len(input)), input_labels] = 1
+
+        input = np.hstack((input, features))
+
+    return pred_proba
+
+y_pred_proba = predict_n_months(mlp, MONTH_AHEAD, X_test)
+# y_pred_proba = mlp.predict_proba(X_test)
 
 # generate transition matrix and visualization
 def transition_matrix(current_state, y_pred_proba):
@@ -155,6 +178,7 @@ print("Transition Matrix:\n", T)
 plot_transition_heatmap(T)
 
 # Evaluation by mean probability
+# Range: (0, 1)
 def mean_prob(y_pred_proba, y_test):
     mean_prob_class = []
     for i in range(y_pred_proba.shape[1]):
@@ -169,8 +193,26 @@ def mean_prob(y_pred_proba, y_test):
     mean_prob = np.nanmean(mean_prob_class)
     return mean_prob
 
+# Evaluation by log probability with base `e`
+# Range: (0, ln(num_classes))
+def entropy(y_pred_proba, y_test):
+    true_probs = np.sum(y_pred_proba * y_test, axis=1)
+    log_probs = np.empty_like(true_probs)
+    for i, p in enumerate(true_probs):
+        if p == 0:
+            print(f"Sample {i}: True class probability is 0, setting log to NaN")
+            log_probs[i] = np.nan
+        else:
+            log_probs[i] = np.log(p)
+
+    entropy = -np.nanmean(log_probs)
+    return entropy
+
 average_probability = mean_prob(y_pred_proba, y_test.to_numpy())
 print(f'average probability = {average_probability}')
+
+entropy_probability = entropy(y_pred_proba, y_test.to_numpy())
+print(f'\nentropy = {entropy_probability}')
 
 # Evaluation by brier score
 def brier(y_pred_proba, y_test):

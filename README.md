@@ -42,7 +42,11 @@ Then if adding input feature:
 brier score =  0.174244431319433
 
 ### Week 3
-From now on we adjust evaluation method to mean truly predicted probability (range from 0 to 1, the higher the better) to consider class imbalance issue. The input features are: `Credit Score` and `Next Loan Delinquency Status`.  
+From now on we adjust evaluation method to mean truly predicted probability (range from 0 to 1, the higher the better) to consider class imbalance issue. The formula is:
+$$
+PTP=∑_{i=1}^{n}⁡p(i,y_i)
+$$
+The input features are: `Credit Score` and `Next Loan Delinquency Status`.  
 **Average probability = 0.32565683422520997**  
 
 After standarizing numerical features (only credit score for now), **Average probability = 0.5526391922390099**  
@@ -61,6 +65,19 @@ credit < 700 => 0; otherwise => 1.
 ```
 And also calculate transition matrix derived from MLP predictions. For detail results, see [Report-Week 5](https://github.com/scyps2/Credit-Risk-Analyzing/blob/main/Reports/MLP-Week5.md).
 
+### Week 6
+This week weighted brier score to punish predictions farther from true labels more,following the formula:
+```
+
+```
+The detailed results can be seen in [Report-Week 6](https://github.com/scyps2/Credit-Risk-Analyzing/blob/main/Reports/MLP-Week6.md).
+
+### Week 7
+This week we examined on multiple months prediction, and apply entropy evaluation as an enhancement to PTP, following the formula: 
+$$
+Entropy=-∑_{i=1}^{n}\ln{⁡p(i,y_i)}
+$$
+Detailed results can be seen in [Report-Week 7](https://github.com/scyps2/Credit-Risk-Analyzing/blob/main/Reports/MLP-Week7.md).
 
 ## Works before joining in
 Markov Chain model, see first commit of Markov Folder.  

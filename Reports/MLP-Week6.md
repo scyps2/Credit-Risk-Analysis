@@ -2,7 +2,20 @@
 The following is examinations on data of 2020Q1.  
 Here state(class) 7 means delinquency state of higher than 6 months.  
 
-This week we weighted brier score to punish predictions farther from true labels more.  
+This week we weighted brier score to punish predictions farther from true labels more. The algorithm is as below:  
+```python
+num_classes = y_pred_proba.shape[1]
+
+# decode one hot
+true_labels = np.argmax(y_test, axis=1)
+
+for i, true_label in enumerate(true_labels):
+    # calculate weight list
+    distances = np.abs(np.arange(num_classes) - true_label)
+    weights = (distances + 1) ** distance_power # default to be linear as 1
+    weighted_score = weights * score_matrix[i] / np.sum(weights)
+    weighted_scores.append(weighted_score)
+```
 
 ### MLP with only 'Previous Deliquency Status'
 
