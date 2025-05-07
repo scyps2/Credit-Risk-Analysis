@@ -1,7 +1,7 @@
 ## MLP Report（Week 7）
-This week we examined on multiple months prediction, and apply entropy evaluation following the algorithm:
+This week we examined on multiple months prediction, and apply entropy evaluation with base "e". There are two ways for calculating entropy:
 ```python
-# Evaluation by log probability with base `e`
+# 1. sample-based: -ln() on every sample and then average
 # Range: (0, ln(num_classes))
 def entropy(y_pred_proba, y_test):
     true_probs = np.sum(y_pred_proba * y_test, axis=1)
@@ -17,6 +17,23 @@ def entropy(y_pred_proba, y_test):
     return entropy
 ```
 Within classes from **0 to 6+**, entropy ranges from **0 to 2.079**.
+```python
+# 2. class-based: -ln() on every class and then average
+# similar to PTP calculation
+def entropy(y_pred_proba, y_test):
+    mean_entropy_class = []
+    for i in range(y_pred_proba.shape[1]):
+        rows_i = y_test[:, i] == 1
+        if np.sum(rows_i) > 0:
+            entropy_i = np.mean(-np.log(y_pred_proba[rows_i, i]))
+        else:
+            entropy_i = np.nan
+        print(f"Entropy for class {i}: {entropy_i}")
+        mean_entropy_class.append(entropy_i)
+
+    mean_entropy = np.nanmean(mean_entropy_class)
+    return mean_entropy
+```
 The results below are all based on predicting deliquency status after 3 months.  
 ### Iteration Method 1
 **_propagating the transition probabilities_  
@@ -63,7 +80,7 @@ adjusted brier score =  0.00206502130955303
 **With `Credit Score`:**  
 average probability = 0.2452789950399672  
 entropy = 0.10265724155852532 (1 months ahead: 0.05270378591909334)  
-brier score =  0.031817913828540344
+brier score =  0.031817913828540344  
 adjusted brier score =  0.002108563723060312
 
 **With 5 main features:**  
@@ -114,18 +131,51 @@ average probability = 0.12526569605103838
 entropy = 0.15076349984500884  
 brier score =  0.040581465430572984  
 adjusted brier score =  0.0034305335518346075  
+**entropy_class = 6.761372954962091**  
+```python
+Entropy for class 0: 0.009082499410059834
+Entropy for class 1: 4.84262070067588
+Entropy for class 2: 6.190071587924956
+Entropy for class 3: 8.335823619830494
+Entropy for class 4: 8.034283769444322
+Entropy for class 5: 8.599714773707987
+Entropy for class 6: 10.206425429927837
+Entropy for class 7: 7.872961258775199
+```
 
 **With `Credit Score`:**  
 average probability = 0.12650117339075412  
 entropy = 0.1564331980069873  
-brier score =  0.040124938313709904
-adjusted brier score =  0.0033586610557953143
+brier score =  0.040124938313709904  
+adjusted brier score =  0.0033586610557953143  
+**entropy_class = 6.607209435350817**  
+```python
+Entropy for class 0: 0.008355158580158721
+Entropy for class 1: 4.762032437889109  
+Entropy for class 2: 5.822891885393652  
+Entropy for class 3: 6.348263259101781  
+Entropy for class 4: 6.774780175966556  
+Entropy for class 5: 9.07571327443016  
+Entropy for class 6: 9.803771246734502  
+Entropy for class 7: 10.261868044710617  
+```
 
 **With 5 main features:**  
 average probability = 0.2036118311850642  
 entropy = 0.09982141095467027  
 brier score =  0.029232008014607735  
-adjusted brier score =  0.0017095765922018418
+adjusted brier score =  0.0017095765922018418  
+**entropy_class = 4.6311793229218114**  
+```python
+Entropy for class 0: 0.012030025664925564
+Entropy for class 1: 4.564815739103751
+Entropy for class 2: 5.403092226068231
+Entropy for class 3: 5.422463509341074
+Entropy for class 4: 6.221682428220605
+Entropy for class 5: 6.7556407893178925
+Entropy for class 6: 7.768415110114107
+Entropy for class 7: 0.9012947555439064
+```
 
 ### **Train MLP with status 3 months ago
 We can also modifiy the training process according the months to predict ahead, as:

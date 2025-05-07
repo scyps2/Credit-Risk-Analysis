@@ -230,25 +230,40 @@ def mean_prob(y_pred_proba, y_test):
     return mean_prob
 
 # Evaluation by log probability with base `e`
-# Range: (0, ln(num_classes))
 def entropy(y_pred_proba, y_test):
-    true_probs = np.sum(y_pred_proba * y_test, axis=1)
-    log_probs = np.empty_like(true_probs)
-    for i, p in enumerate(true_probs):
-        if p == 0:
-            print(f"Sample {i}: True class probability is 0, setting log to NaN")
-            log_probs[i] = np.nan
-        else:
-            log_probs[i] = np.log(p)
+    ### 1. sample-based: -ln() on every sample and then average
+    ### Range: (0, ln(num_classes))
+    # true_probs = np.sum(y_pred_proba * y_test, axis=1)
+    # log_probs = np.empty_like(true_probs)
+    # for i, prob in enumerate(true_probs):
+    #     if prob == 0:
+    #         print(f"Sample {i}: True class probability is 0, setting log to NaN")
+    #         log_probs[i] = np.nan
+    #     else:
+    #         log_probs[i] = np.log(prob)
 
-    entropy = -np.nanmean(log_probs)
-    return entropy
+    # entropy = -np.nanmean(log_probs)
+    # return entropy
+
+    ### 2. class-based: -ln() on every class and then average
+    mean_entropy_class = []
+    for i in range(y_pred_proba.shape[1]):
+        rows_i = y_test[:, i] == 1
+        if np.sum(rows_i) > 0:
+            entropy_i = np.mean(-np.log(y_pred_proba[rows_i, i]))
+        else:
+            entropy_i = np.nan
+        print(f"Entropy for class {i}: {entropy_i}")
+        mean_entropy_class.append(entropy_i)
+
+    mean_entropy = np.nanmean(mean_entropy_class)
+    return mean_entropy
 
 average_probability = mean_prob(y_pred_proba, y_test.to_numpy())
-print(f'average probability = {average_probability}')
+print(f'average probability = {average_probability}\n')
 
 entropy_probability = entropy(y_pred_proba, y_test.to_numpy())
-print(f'\nentropy = {entropy_probability}')
+print(f'average entropy = {entropy_probability}\n')
 
 # Evaluation by brier score
 def brier(y_pred_proba, y_test):

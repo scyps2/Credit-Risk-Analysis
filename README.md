@@ -42,10 +42,18 @@ Then if adding input feature:
 brier score =  0.174244431319433
 
 ### Week 3
-From now on we adjust evaluation method to mean truly predicted probability (range from 0 to 1, the higher the better) to consider class imbalance issue. The formula is:
+From now on we adjust evaluation method to **PTP: mean truly predicted probability** (range from 0 to 1, the higher the better) to consider class imbalance issue.  
+
+For each row $i$ in the dataset with $N$ rows, take the predicted probability of its true label in the test set, and mark with $p_i$. Then calculate the average of the probability of truly predicting a class:
 $$
-PTP=∑_{i=1}^{n}⁡p(i,y_i)
+PTP_{class}=\frac{1}{N}\sum_{i=1}^{N}p_i
 $$
+Then take the average over all classes:
+$$
+PTP=\frac{1}{C}\sum_{c=1}^{C}PTP_{c}
+$$
+Where C denotes the number of classes.  
+
 The input features are: `Credit Score` and `Next Loan Delinquency Status`.  
 **Average probability = 0.32565683422520997**  
 
