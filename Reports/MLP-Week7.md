@@ -64,30 +64,106 @@ average probability = 0.12584506748065927
 entropy = 0.16520659321309436  
 brier score =  0.037273658636576584  
 adjusted brier score =  0.0027203744763043556  
+**entropy_class = 6.800633458961423**  
+```python
+Entropy for class 0: 0.006389342406215621
+Entropy for class 1: 4.951031872679091
+Entropy for class 2: 8.672714212642067
+Entropy for class 3: 6.75143950568151
+Entropy for class 4: 6.0477956920122
+Entropy for class 5: 10.762551816907925
+Entropy for class 6: 6.497255739518178
+Entropy for class 7: 10.715889489844193
+```
 
 **With `Credit Score`:**  
 average probability = 0.13524271686443104  
 entropy = 0.12263973142272337  
 brier score =  0.03404474790524376  
-adjusted brier score =  0.002073965841030571
+adjusted brier score =  0.002073965841030571  
+**entropy_class = 5.2984820104121875**  
+```python
+Entropy for class 0: 0.007067635774381206
+Entropy for class 1: 4.840260927205299
+Entropy for class 2: 7.899645033293492
+Entropy for class 3: 4.359957302826681
+Entropy for class 4: 5.5370729832378185
+Entropy for class 5: 4.083028349622112
+Entropy for class 6: 10.88089807028977
+Entropy for class 7: 4.7799257810479485
+```
+Transition Matrix Heat Map:  
+![heatmap](credit_iter1.1.png)
+
+**With 5 main features:**  
+average probability = 0.253783938088625
+entropy = 0.08870929325982928
+brier score =  0.026583380972682508
+adjusted brier score =  0.0014902885418081532
+**entropy_class = 3.988348267348335**  
+```python
+Entropy for class 0: 0.010497314896987806
+Entropy for class 1: 4.388829625150659
+Entropy for class 2: 5.799355045062267
+Entropy for class 3: 5.005564377349957
+Entropy for class 4: 4.061381163542665
+Entropy for class 5: 4.200182537971729
+Entropy for class 6: 8.179186239120208
+Entropy for class 7: 0.26178983569220704
+```
+Transition Matrix Heat Map:  
+![heatmap](5main_iter1.1.png)
 
 #### 2. encode `pred_proba` to one-hot 
 average probability = 0.24346980135274554  
 entropy = 0.09765431522867496  
 brier score =  0.031637665749323626  
 adjusted brier score =  0.00206502130955303  
+**entropy_class = 4.008967180392805**  
+```python
+Entropy for class 0: 0.009775633108989315
+Entropy for class 1: 5.103320985277568
+Entropy for class 2: 8.932882488210165
+Entropy for class 3: 3.5038918716759784
+Entropy for class 4: 3.420321908832572
+Entropy for class 5: 5.703158799951571
+Entropy for class 6: 5.242274037157176
+Entropy for class 7: 0.1561117189284189
+```
 
 **With `Credit Score`:**  
 average probability = 0.2452789950399672  
 entropy = 0.10265724155852532 (1 months ahead: 0.05270378591909334)  
 brier score =  0.031817913828540344  
-adjusted brier score =  0.002108563723060312
+adjusted brier score =  0.002108563723060312  
+**entropy_class = 4.960439777564931**  
+```python
+Entropy for class 0: 0.008615976046365109
+Entropy for class 1: 5.078337751116721
+Entropy for class 2: 8.70135446383711
+Entropy for class 3: 4.153362048468214
+Entropy for class 4: 3.394715197089275
+Entropy for class 5: 3.7274792897850895
+Entropy for class 6: 14.475913329089876
+Entropy for class 7: 0.1437401650867989
+```
 
 **With 5 main features:**  
 average probability = 0.2501087228409682  
 entropy = 0.10682508970748208  
 brier score =  0.03168545357708819  
 adjusted brier score =  0.0020835252409971633  
+**entropy_class = 4.9231551712164245**  
+```python
+Entropy for class 0: 0.010108982486752996
+Entropy for class 1: 4.965449773354866
+Entropy for class 2: 10.365523092054913
+Entropy for class 3: 4.588094649264331
+Entropy for class 4: 3.8534709098834994
+Entropy for class 5: 3.7038800713064925
+Entropy for class 6: 11.778034990209454
+Entropy for class 7: 0.12067890117108794
+```
 
 ### Iteration Method 2
 **_getting transition probabilities for all possible state transitions, then taking expected value based on previous transition probabilities_

@@ -121,11 +121,11 @@ def predict_n_months(mlp, n, input):
         pred_proba = mlp.predict_proba(input)
 
         # 1. remain probability form
-        # result = pred_proba
+        result = pred_proba
         # 2. encode to one hot
-        result_labels = np.argmax(pred_proba, axis=1)
-        result = np.zeros_like(pred_proba)
-        result[np.arange(len(result)), result_labels] = 1
+        # result_labels = np.argmax(pred_proba, axis=1)
+        # result = np.zeros_like(pred_proba)
+        # result[np.arange(len(result)), result_labels] = 1
 
         input = np.hstack((result, features))
 
@@ -164,8 +164,8 @@ def predict_n_months_weighted(mlp, n, input):
     return results
 
 # y_pred_proba = mlp.predict_proba(X_test)
-# y_pred_proba = predict_n_months(mlp, MONTH_AHEAD, X_test)
-y_pred_proba = predict_n_months_weighted(mlp, MONTH_AHEAD, X_test)
+y_pred_proba = predict_n_months(mlp, MONTH_AHEAD, X_test)
+# y_pred_proba = predict_n_months_weighted(mlp, MONTH_AHEAD, X_test)
 
 
 # generate transition matrix and visualization

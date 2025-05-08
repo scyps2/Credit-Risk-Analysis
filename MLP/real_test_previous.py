@@ -147,8 +147,8 @@ def predict_n_months_weighted(mlp, n, input):
     return results
 
 # y_pred_proba = mlp.predict_proba(X_test)
-# y_pred_proba = predict_n_months(mlp, MONTH_AHEAD, X_test)
-y_pred_proba = predict_n_months_weighted(mlp, MONTH_AHEAD, X_test)
+y_pred_proba = predict_n_months(mlp, MONTH_AHEAD, X_test)
+# y_pred_proba = predict_n_months_weighted(mlp, MONTH_AHEAD, X_test)
 
 # generate transition matrix and visualization
 def transition_matrix(current_state, y_pred_proba):
