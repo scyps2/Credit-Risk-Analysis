@@ -264,15 +264,18 @@ average probability = 0.30554111135043394
 entropy = 0.0793874576832437  
 brier score =  0.02810046936215188  
 adjusted brier score =  0.001936038324794717  
+**entropy_class = 2.6362843605049604**
 
 **With `Credit Score`:**  
 average probability = 0.31309216414193974  
 entropy = 0.07540912794051383  
 brier score =  0.02790038888099853  
 adjusted brier score =  0.0019538893776107928  
+**entropy_class = 2.5246880254080595**
 
 **With 5 main features:**  
 average probability = 0.3154518015108996  
 entropy = 0.07496824565015968  
 brier score =  0.027976407199123924  
 adjusted brier score =  0.0019539852498494854  
+**entropy_class = 2.4883358783761147**

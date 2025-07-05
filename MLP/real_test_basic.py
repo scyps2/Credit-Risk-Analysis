@@ -5,7 +5,7 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
 
-df = pd.read_csv('2007Q1_nonstandard_performance.csv').head(10000)
+df = pd.read_csv('2020Q1_standard_performance.csv').head(10000)
 
 df = df[[
     "Loan Sequence Number", "Monthly Reporting Period", 

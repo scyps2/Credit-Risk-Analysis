@@ -63,7 +63,8 @@ df = reclassify(df)
 def preprocess(df):
     # creat states of next month
     df = df.sort_values(by=['Loan Sequence Number', "Monthly Reporting Period"])
-    df['Next Loan Delinquency Status'] = df.groupby('Loan Sequence Number')['Current Loan Delinquency Status'].shift(-1)
+    # df['Next Loan Delinquency Status'] = df.groupby('Loan Sequence Number')['Current Loan Delinquency Status'].shift(-1)
+    df['Next Loan Delinquency Status'] = df.groupby('Loan Sequence Number')['Current Loan Delinquency Status'].shift(-MONTH_AHEAD)
     df = df.dropna()
     df = df[df["Next Loan Delinquency Status"] != "RA"]
     df = df.reset_index(drop=True)
@@ -119,14 +120,7 @@ def predict_n_months(mlp, n, input):
     features = input[['Credit Score']].to_numpy()
     for _ in range(n):
         pred_proba = mlp.predict_proba(input)
-
-        # 1. remain probability form
         result = pred_proba
-        # 2. encode to one hot
-        # result_labels = np.argmax(pred_proba, axis=1)
-        # result = np.zeros_like(pred_proba)
-        # result[np.arange(len(result)), result_labels] = 1
-
         input = np.hstack((result, features))
 
     return pred_proba
@@ -163,8 +157,8 @@ def predict_n_months_weighted(mlp, n, input):
 
     return results
 
-# y_pred_proba = mlp.predict_proba(X_test)
-y_pred_proba = predict_n_months(mlp, MONTH_AHEAD, X_test)
+y_pred_proba = mlp.predict_proba(X_test)
+# y_pred_proba = predict_n_months(mlp, MONTH_AHEAD, X_test)
 # y_pred_proba = predict_n_months_weighted(mlp, MONTH_AHEAD, X_test)
 
 
@@ -202,7 +196,7 @@ current_states = np.argmax( # decode into integer columns(before one-hot)
     axis=1
 )
 T = transition_matrix(current_states, y_pred_proba)
-print("Transition Matrix:\n", T)
+print(f"Transition Matrix:{T}\n")
 plot_transition_heatmap(T)
 
 #################################### Evaluations ###################################
@@ -225,21 +219,7 @@ def mean_prob(y_pred_proba, y_test):
 
 # Evaluation by log probability with base `e`
 def entropy(y_pred_proba, y_test):
-    ### 1. sample-based: -ln() on every sample and then average
-    ### Range: (0, ln(num_classes))
-    # true_probs = np.sum(y_pred_proba * y_test, axis=1)
-    # log_probs = np.empty_like(true_probs)
-    # for i, prob in enumerate(true_probs):
-    #     if prob == 0:
-    #         print(f"Sample {i}: True class probability is 0, setting log to NaN")
-    #         log_probs[i] = np.nan
-    #     else:
-    #         log_probs[i] = np.log(prob)
-
-    # entropy = -np.nanmean(log_probs)
-    # return entropy
-
-    ### 2. class-based: -ln() on every class and then average
+    # class-based: -ln() on every class and then average
     mean_entropy_class = []
     for i in range(y_pred_proba.shape[1]):
         rows_i = y_test[:, i] == 1
@@ -293,7 +273,7 @@ def brier_weighted(y_pred_proba, y_test, distance_power = 1):
     return brier_score
 
 brier_score = brier(y_pred_proba, y_test.to_numpy())
-print('brier score = ', brier_score)
+print(f'brier score = {brier_score}\n')
 brier_score = brier_weighted(y_pred_proba, y_test.to_numpy())
 print('adjusted brier score = ', brier_score)
 
