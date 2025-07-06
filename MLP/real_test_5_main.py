@@ -7,7 +7,7 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
 
-MONTH_AHEAD = 3
+MONTH_AHEAD = 6
 
 df_performance = pd.read_csv('2020Q1_standard_performance.csv').head(500000)
 df_origination = pd.read_csv('2020Q1_standard_origination.csv').head(500000)
@@ -107,17 +107,29 @@ X_train = train_df[[col for col in encoded_columns if col.startswith('Current Lo
         ["Credit Score", "Original UPB", "Original Debt-to-Income (DTI) Ratio", 
         "Original Loan-to-Value (LTV)", "Original Interest Rate"]]
 y_train = train_df[[col for col in encoded_columns if col.startswith('Next Loan Delinquency Status')]]
-
 X_test = test_df[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')] +
         ["Credit Score", "Original UPB", "Original Debt-to-Income (DTI) Ratio", 
         "Original Loan-to-Value (LTV)", "Original Interest Rate"]]
 y_test = test_df[[col for col in encoded_columns if col.startswith('Next Loan Delinquency Status')]]
 
-# MLP Classifying
-mlp = MLPClassifier(hidden_layer_sizes = (10, 10, 10), activation = 'relu', max_iter = 5000, random_state = 1,
-                   learning_rate_init = 0.0001, learning_rate = 'adaptive')
+# separate dataset by previous state
+train_zero = train_df[train_df["Current Loan Delinquency Status"] == 0]
+X_train_zero = train_zero[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')] + ["Credit Score", "Original UPB", "Original Debt-to-Income (DTI) Ratio", 
+        "Original Loan-to-Value (LTV)", "Original Interest Rate"]]
+y_train_zero = train_zero[[col for col in encoded_columns if col.startswith('Next Loan Delinquency Status')]]                                                                    
+test_zero = test_df[test_df["Current Loan Delinquency Status"] == 0]
+X_test_zero = test_zero[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')] + ["Credit Score", "Original UPB", "Original Debt-to-Income (DTI) Ratio", 
+        "Original Loan-to-Value (LTV)", "Original Interest Rate"]]
+y_test_zero = test_zero[[col for col in encoded_columns if col.startswith('Next Loan Delinquency Status')]]
 
-mlp.fit(X_train, y_train)
+train_nonzero = train_df[train_df["Current Loan Delinquency Status"] > 0]
+X_train_nonzero = train_nonzero[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')] + ["Credit Score", "Original UPB", "Original Debt-to-Income (DTI) Ratio", 
+        "Original Loan-to-Value (LTV)", "Original Interest Rate"]]
+y_train_nonzero = train_nonzero[[col for col in encoded_columns if col.startswith('Next Loan Delinquency Status')]]
+test_nonzero = test_df[test_df["Current Loan Delinquency Status"] > 0]
+X_test_nonzero = test_nonzero[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')] + ["Credit Score", "Original UPB", "Original Debt-to-Income (DTI) Ratio", 
+        "Original Loan-to-Value (LTV)", "Original Interest Rate"]]
+y_test_nonzero = test_nonzero[[col for col in encoded_columns if col.startswith('Next Loan Delinquency Status')]]
 
 def predict_n_months(mlp, n, input):
     features = input[[
@@ -167,9 +179,24 @@ def predict_n_months_weighted(mlp, n, input):
 
     return results
 
-y_pred_proba = mlp.predict_proba(X_test)
-# y_pred_proba = predict_n_months(mlp, MONTH_AHEAD, X_test)
+# MLP Classifying
+mlp = MLPClassifier(hidden_layer_sizes = (10, 10, 10), activation = 'relu', max_iter = 5000, random_state = 1,
+                   learning_rate_init = 0.0001, learning_rate = 'adaptive')
+
+mlp.fit(X_train, y_train)
+# y_pred_proba = mlp.predict_proba(X_test)
+y_pred_proba = predict_n_months(mlp, MONTH_AHEAD, X_test)
 # y_pred_proba = predict_n_months_weighted(mlp, MONTH_AHEAD, X_test)
+
+mlp.fit(X_train_zero, y_train_zero)
+# y_pred_proba_zero = mlp.predict_proba(X_test_zero)
+y_pred_proba_zero = predict_n_months(mlp, MONTH_AHEAD, X_test_zero)
+# y_pred_proba_zero = predict_n_months_weighted(mlp, MONTH_AHEAD, X_test_zero)
+
+mlp.fit(X_train_nonzero, y_train_nonzero)
+# y_pred_proba_nonzero = mlp.predict_proba(X_test_nonzero)
+y_pred_proba_nonzero = predict_n_months(mlp, MONTH_AHEAD, X_test_nonzero)
+# y_pred_proba_nonzero = predict_n_months_weighted(mlp, MONTH_AHEAD, X_test_nonzero)
 
 # generate transition matrix and visualization
 def transition_matrix(current_state, y_pred_proba):
@@ -205,8 +232,24 @@ current_state = np.argmax( # decode into integer columns(before one-hot)
     axis=1
 )
 T = transition_matrix(current_state, y_pred_proba)
-print(f"Transition Matrix:{T}\n")
+# print(f"Transition Matrix:{T}\n")
 plot_transition_heatmap(T)
+
+current_state_zero = np.argmax(
+    X_test_zero[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')]].values, 
+    axis=1
+)
+T_zero = transition_matrix(current_state_zero, y_pred_proba_zero)
+# print("Transition Matrix for for previous state 0:\n", T_zero)
+plot_transition_heatmap(T_zero)
+
+current_state_nonzero = np.argmax(
+    X_test_nonzero[[col for col in encoded_columns if col.startswith('Current Loan Delinquency Status')]].values, 
+    axis=1
+)
+T_nonzero = transition_matrix(current_state_nonzero, y_pred_proba_nonzero)
+# print("Transition Matrix for for previous state 1:\n", T_nonzero)
+plot_transition_heatmap(T_nonzero)
 
 #################################### Evaluations ###################################
 
@@ -220,15 +263,29 @@ def mean_prob(y_pred_proba, y_test):
             mean_prob_i = np.mean(y_pred_proba[rows_i, i]) # y_pred_proba[rows_i, i]: only calculate rows of True
         else:
             mean_prob_i = np.nan
-        print(f"Probability of truly predicting class {i} is {mean_prob_i}")
+        # print(f"Probability of truly predicting class {i} is {mean_prob_i}")
         mean_prob_class.append(mean_prob_i)
 
     mean_prob = np.nanmean(mean_prob_class)
     return mean_prob
 
 # Evaluation by log probability with base `e`
-def entropy(y_pred_proba, y_test):
-    # class-based: -ln() on every class and then average
+# 1. sample-based: -ln() on every sample and then average
+# Range: (0, ln(num_classes))
+def entropy_sample(y_pred_proba, y_test):
+    true_probs = np.sum(y_pred_proba * y_test, axis=1)
+    log_probs = np.empty_like(true_probs)
+    for i, p in enumerate(true_probs):
+        if p == 0:
+            print(f"Sample {i}: True class probability is 0, setting log to NaN")
+            log_probs[i] = np.nan
+        else:
+            log_probs[i] = np.log(p)
+    entropy = -np.nanmean(log_probs)
+    return entropy
+# 2. class-based: -ln() on every class and then average
+# similar to PTP calculation
+def entropy_class(y_pred_proba, y_test):
     mean_entropy_class = []
     for i in range(y_pred_proba.shape[1]):
         rows_i = y_test[:, i] == 1
@@ -238,15 +295,29 @@ def entropy(y_pred_proba, y_test):
             entropy_i = np.nan
         print(f"Entropy for class {i}: {entropy_i}")
         mean_entropy_class.append(entropy_i)
-
     mean_entropy = np.nanmean(mean_entropy_class)
     return mean_entropy
 
 average_probability = mean_prob(y_pred_proba, y_test.to_numpy())
 print(f'average probability = {average_probability}\n')
+average_probability_zero = mean_prob(y_pred_proba_zero, y_test_zero.to_numpy())
+print(f'average probability for previous state 0 = {average_probability_zero}\n')
+average_probability_nonzero = mean_prob(y_pred_proba_nonzero, y_test_nonzero.to_numpy())
+print(f'average probability for previous state 1 = {average_probability_nonzero}\n')
 
-entropy_probability = entropy(y_pred_proba, y_test.to_numpy())
-print(f'average entropy = {entropy_probability}\n')
+entropy_probability = entropy_sample(y_pred_proba, y_test.to_numpy())
+print(f'entropy_sample = {entropy_probability}\n')
+entropy_probability_zero = entropy_sample(y_pred_proba_zero, y_test_zero.to_numpy())
+print(f'entropy_sample for previous state 0 = {average_probability_zero}\n')
+entropy_probability_nonzero = entropy_sample(y_pred_proba_nonzero, y_test_nonzero.to_numpy())
+print(f'entropy_sample for previous state 1 = {entropy_probability_nonzero}\n')
+
+entropy_class_probability = entropy_class(y_pred_proba, y_test.to_numpy())
+print(f'entropy_class = {entropy_class_probability}\n')
+entropy_class_probability_zero = entropy_class(y_pred_proba_zero, y_test_zero.to_numpy())
+print(f'entropy_class for previous state 0 = {entropy_class_probability_zero}\n')
+entropy_class_probability_nonzero = entropy_class(y_pred_proba_nonzero, y_test_nonzero.to_numpy())
+print(f'entropy_class for previous state 1 = {entropy_class_probability_nonzero}\n')
 
 # Evaluation by brier score
 def brier(y_pred_proba, y_test):
@@ -283,5 +354,14 @@ def brier_weighted(y_pred_proba, y_test, distance_power = 1):
 
 brier_score = brier(y_pred_proba, y_test.to_numpy())
 print(f'brier score = {brier_score}\n')
+brier_score_zero = brier(y_pred_proba_zero, y_test_zero.to_numpy())
+print(f'brier score for previous state 0 = {brier_score_zero}\n')
+brier_score_nonzero = brier(y_pred_proba_nonzero, y_test_nonzero.to_numpy())
+print(f'brier score for previous state 1 = {brier_score_nonzero}\n')
+
 brier_score = brier_weighted(y_pred_proba, y_test.to_numpy())
-print('adjusted brier score = ', brier_score)
+print(f'adjusted brier score = {brier_score}\n')
+brier_score_zero = brier_weighted(y_pred_proba_zero, y_test_zero.to_numpy())
+print(f'adjusted brier score for previous state 0 = {brier_score_zero}\n')
+brier_score_nonzero = brier_weighted(y_pred_proba_nonzero, y_test_nonzero.to_numpy())
+print(f'adjusted brier score for previous state 1 = {brier_score_nonzero}\n')

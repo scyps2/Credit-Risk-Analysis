@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
@@ -142,7 +141,6 @@ np.savetxt("credit_low_predict.csv", y_pred_proba_low, delimiter=',')
 mlp.fit(X_train_high, y_train_high)
 y_pred_proba_high = mlp.predict_proba(X_test_high)
 np.savetxt("credit_high_predict.csv", y_pred_proba_high, delimiter=',')
-
 
 # generate transition matrix and visualization
 def transition_matrix(current_state, y_pred_proba):
