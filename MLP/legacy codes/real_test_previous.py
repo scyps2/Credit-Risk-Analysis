@@ -55,8 +55,7 @@ df = reclassify(df)
 def preprocess(df):
     # creat states of next month
     df = df.sort_values(by=['Loan Sequence Number', "Monthly Reporting Period"])
-    # df['Next Loan Delinquency Status'] = df.groupby('Loan Sequence Number')['Current Loan Delinquency Status'].shift(-1)
-    df['Next Loan Delinquency Status'] = df.groupby('Loan Sequence Number')['Current Loan Delinquency Status'].shift(-MONTH_AHEAD)
+    df['Next Loan Delinquency Status'] = df.groupby('Loan Sequence Number')['Current Loan Delinquency Status'].shift(-1)
     df = df.dropna()
     df = df[df["Next Loan Delinquency Status"] != "RA"]
     df = df.reset_index(drop=True)
