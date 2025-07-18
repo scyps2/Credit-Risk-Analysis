@@ -24,10 +24,10 @@ def reclassify(df):
         "Cumulative Ratio": cumulative_ratio.values
     }).sort_values(by="Delinquency Status", ascending=True)
 
-    print("Delinquency Status | Frequency | Cumulative Ratio")
-    print("-" * 50)
-    for _, row in status_summary.iterrows():
-        print(f"{row['Delinquency Status']:<17} | {row['Frequency']:<9} | {row['Cumulative Ratio']:.4f}")
+    # print("Delinquency Status | Frequency | Cumulative Ratio")
+    # print("-" * 50)
+    # for _, row in status_summary.iterrows():
+    #     print(f"{row['Delinquency Status']:<17} | {row['Frequency']:<9} | {row['Cumulative Ratio']:.4f}")
 
     # reclassify
     threshold = 0.995
@@ -39,7 +39,7 @@ def reclassify(df):
     df["Current Loan Delinquency Status"] = df["Current Loan Delinquency Status"].apply(
         lambda x: x if x <= 6 else 7
     )
-    print(df["Current Loan Delinquency Status"].unique())
+    # print(df["Current Loan Delinquency Status"].unique())
     return df
 
 def preprocess(df):
