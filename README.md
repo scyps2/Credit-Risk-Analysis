@@ -16,6 +16,9 @@ Official tool that allows analysis of the Standard Dataset: https://claritybi.fr
 
 Data dictionary can be found in [file_layout.xlsx](https://github.com/scyps2/Credit-Risk-Analyzing/MLP/file_layout.xlsx)  
 
+### Publication at Credit Scoring and Credit Control Conference XIX (CSCC)
+![32fc0f586bacae3d2b023aabd9859cc0](https://github.com/user-attachments/assets/6c04db25-9037-45c3-b9d9-d93532bb73d0)
+
 ## Work in 2025
 ### Week 1
 For the first step we used `Monthly Performance Data File`. Features Mapping:    
