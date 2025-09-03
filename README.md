@@ -17,7 +17,7 @@ Official tool that allows analysis of the Standard Dataset: https://claritybi.fr
 Data dictionary can be found in [file_layout.xlsx](https://github.com/scyps2/Credit-Risk-Analyzing/MLP/file_layout.xlsx)  
 
 ### Publication at Credit Scoring and Credit Control Conference XIX (CSCC)
-![32fc0f586bacae3d2b023aabd9859cc0](https://github.com/user-attachments/assets/6c04db25-9037-45c3-b9d9-d93532bb73d0)
+![32fc0f586bacae3d2b023aabd9859cc0](D:\UNNC\Y3\Credit-Risk-Analyzing\CSCC XIX.jpg)
 
 ## Work in 2025
 ### Week 1
@@ -29,7 +29,7 @@ Current Loan Delinquency Status -> y
 MLP Results (head 10000 data):  
 brier score = 0.10160234557362295 (non-standard)  
 **brier score =  0.04421953397677621** (standard)
-  
+
 _** Some explaination for data columns:_  
 -_Loan Sequence Number: only identify certain loans but not clients for now._  
 -_`Origination Data File` include credit score, which may be used later._  
@@ -95,7 +95,7 @@ Markov Chain model, see first commit of Markov Folder.
 **brier score = 0.12729008977196365**  
 brier score when transition matrix is Identity matrix = 0.23454545454545456  
 _** Identity matrix: state transition doesn't happen. The next state copies current state for 100% probability._  
- 
+
 ## Week 1 (Oct. 14)
 ### Tasks
 - [x] Build multi-class MLPClassifier with scikit-learn, predict on 'y_next'
@@ -103,13 +103,13 @@ _** Identity matrix: state transition doesn't happen. The next state copies curr
 - [x] Draw ROC curve
 ### Outcomes
 Basic ANN, with current month overdue state 'y' as input(one-hot encoded). Two hidden layers, each with 10 neurons. Output a probability matrix for all states of next month.  
- 
+
 Brier score for state 0 is 0.026767212942569212  
 Brier score for state 1 is 0.03999608844442646  
 Brier score for state 2 is 0.026211268859962226  
 Brier score for state 3 is 0.03474007548554805  
 **brier score = 0.12771464573250563**  
- 
+
 ![week 1 ROC](MLP/figs/basic.png)  
 Best threshold for state 0 is  0.01  
 Best threshold for state 1 is  0.04  
@@ -124,13 +124,13 @@ _** Threshold: If probability for state i > threshold, this is considered as 'po
 - [x] Test on training dataset
 ### Outcomes
 Result gets worse after including 'grade'.  
- 
+
 Brier score for state 0 is 0.026593834862040974  
 Brier score for state 1 is 0.03991571728797261  
 Brier score for state 2 is 0.02782713063525248  
 Brier score for state 3 is 0.03674043336080793  
 brier score = 0.13107711614607478  
- 
+
 ![week 2 ROC](MLP/figs/grade.png)  
 Best threshold for state 0 is  0.01  
 Best threshold for state 1 is  0.04  
@@ -179,7 +179,7 @@ Brier score for state 1 is 0.17616818985984314
 Brier score for state 2 is 0.08629849458531651  
 Brier score for state 3 is 0.02457887700079036  
 **brier score = 0.4607318909437098**  
- 
+
 ![week 3 ROC](MLP/figs/dataset3.png) 
 #
 To eliminate random state influence:  
@@ -297,13 +297,13 @@ Brier score for state 1 is 0.1777163907633097
 Brier score for state 2 is 0.09672309619744057  
 Brier score for state 3 is 0.03225832881569659  
 **brier score =  0.4825201434137059**  
- 
+
 ![week 4 ROC](MLP/figs/dataset4.png)  
 
 After including mev, **brier score =  0.4844400613953667**  
 After including var, brier score =  0.48319578421255377  
 After including mev and var, brier score =  0.4828506590072515  
- 
+
 ![week 4 ROC](MLP/figs/mev_var.png) 
 
 ## Week5 (Nov. 11)
