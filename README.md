@@ -17,7 +17,7 @@ Official tool that allows analysis of the Standard Dataset: https://claritybi.fr
 Data dictionary can be found in [file_layout.xlsx](https://github.com/scyps2/Credit-Risk-Analyzing/MLP/file_layout.xlsx)  
 
 ### Publication at Credit Scoring and Credit Control Conference XIX (CSCC)
-![32fc0f586bacae3d2b023aabd9859cc0](D:\UNNC\Y3\Credit-Risk-Analyzing\CSCC XIX.jpg)
+![32fc0f586bacae3d2b023aabd9859cc0](https://github.com/scyps2/Credit-Risk-Analysis/blob/eda64d7ae13f7025c10b2a74df101f9fc086ae9b/CSCC%20XIX.jpg)
 
 ## Work in 2025
 ### Week 1
